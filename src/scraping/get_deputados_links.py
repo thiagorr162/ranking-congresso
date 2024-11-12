@@ -1,6 +1,7 @@
 import argparse
 import json
 from pathlib import Path
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -13,7 +14,7 @@ parser.add_argument("--sexo", type=str, default="", choices=["M", "F"], help="Se
 args = parser.parse_args()
 
 # Define o caminho de saída para os arquivos JSON
-output_path = Path(f"data/deputados/{args.legislatura}")
+output_path = Path(f"data/deputados/links/{args.legislatura}")
 output_path.mkdir(parents=True, exist_ok=True)
 
 # Headers para evitar bloqueio por User-Agent
