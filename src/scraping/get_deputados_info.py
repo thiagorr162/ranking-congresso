@@ -1,7 +1,9 @@
 import json
 import re
+import time
 from pathlib import Path
 
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 
@@ -23,7 +25,11 @@ def padronizar_recursos(recursos):
 
         elif "salário mensal bruto" in chave_limpa.lower():
             # Extrai o valor numérico do salário e converte para float
-            valor_numerico = float(re.sub(r"[^\d,]", "", valor).replace(",", "."))
+            try:
+                valor_numerico = float(re.sub(r"[^\d,]", "", valor).replace(",", "."))
+            except ValueError:
+                valor_numerico = valor
+
             recursos_padronizados[chave_limpa] = valor_numerico
 
         elif "imóvel funcional" in chave_limpa.lower():
@@ -33,7 +39,11 @@ def padronizar_recursos(recursos):
 
         elif "auxílio-moradia" in chave_limpa.lower():
             # Extrai o valor numérico do auxílio-moradia
-            valor_numerico = float(re.sub(r"[^\d,]", "", valor).replace(",", "."))
+            try:
+                valor_numerico = float(re.sub(r"[^\d,]", "", valor).replace(",", "."))
+            except ValueError:
+                valor_numerico = valor
+
             recursos_padronizados[chave_limpa] = valor_numerico
 
         elif "viagens em missão oficial" in chave_limpa.lower():
@@ -54,9 +64,8 @@ def padronizar_recursos(recursos):
 
 
 # Caminho dos arquivos JSON salvos anteriormente
-input_path = Path("data/deputados")
-output_path = Path("data/deputados/atualizado")
-output_path.mkdir(parents=True, exist_ok=True)
+input_path = Path("data/deputados/links")
+output_path = Path("data/deputados/processado")
 
 # Headers para evitar bloqueio por User-Agent
 headers = {
@@ -77,6 +86,8 @@ for json_file in input_path.rglob("*.json"):
     # URL da página do deputado
     url = deputado_data["url"]
 
+    print(f"Processing {url}")
+
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, "html.parser")
@@ -84,16 +95,21 @@ for json_file in input_path.rglob("*.json"):
     info = {}
 
     # Extraindo informações detalhadas do deputado
-    info["nome"] = soup.find("span", string="Nome Civil:").find_next_sibling(string=True).strip().title()
-    info["partido"] = soup.find("span", string="Partido:").find_next_sibling(string=True).strip().title()
-    info["email"] = soup.find("a", class_="email")["href"].replace("mailto:", "")
-    info["telefone"] = soup.find("span", string="Telefone:").find_next_sibling(string=True).strip()
+    try:
+        info["nome"] = soup.find("span", string="Nome Civil:").find_next_sibling(string=True).strip().title()
+        info["partido"] = soup.find("span", string="Partido:").find_next_sibling(string=True).strip().title()
+        info["email"] = soup.find("a", class_="email")["href"].replace("mailto:", "")
+        info["telefone"] = soup.find("span", string="Telefone:").find_next_sibling(string=True).strip()
 
-    info["nascimento"] = soup.find("span", string="Data de Nascimento:").find_next_sibling(string=True).strip()
-    info["naturalidade"] = soup.find("span", string="Naturalidade:").find_next_sibling(string=True).strip()
+        info["nascimento"] = soup.find("span", string="Data de Nascimento:").find_next_sibling(string=True).strip()
+        info["naturalidade"] = soup.find("span", string="Naturalidade:").find_next_sibling(string=True).strip()
 
-    info["endereco"] = soup.find("span", string="Endereço:").find_next_sibling(string=True).strip().replace("\n", "")
-    info["endereco"] = re.sub(" +", " ", info["endereco"])
+        info["endereco"] = (
+            soup.find("span", string="Endereço:").find_next_sibling(string=True).strip().replace("\n", "")
+        )
+        info["endereco"] = re.sub(" +", " ", info["endereco"])
+    except TypeError:
+        continue
 
     # Extraindo informações de atuação para 2024
     atuacao = {}
@@ -268,4 +284,10 @@ for json_file in input_path.rglob("*.json"):
 
     # Adicionar os dados de recursos e benefícios ao dicionário principal
     info["recursos_beneficios_2024"] = padronizar_recursos(recursos_beneficios)
-    breakpoint()
+
+    output_file = output_path / json_file.relative_to(input_path)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with output_file.open("w", encoding="utf-8") as f:
+        json.dump(info, f, ensure_ascii=False, indent=4)
+    time.sleep(np.random.rand())
