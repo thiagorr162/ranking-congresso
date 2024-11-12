@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "template"
+name = "de-putados"
 version = "0.1.0"
 description = "Use this config file as template for your project."
 authors = ["Your Name <you@example.com>"]
