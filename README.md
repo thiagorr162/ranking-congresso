@@ -90,4 +90,4 @@ As equivalências exibidas junto aos gastos ("equivalente a X salários mínimos
 
 ## Publicação
 
-O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages todo dia, além de poder ser disparado manualmente. Ele usa o resumo eleitoral já versionado em `eleicoes/`, atualizado pelo workflow mensal descrito em [Eleições](#eleições).
+O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages a cada 3 dias, além de poder ser disparado manualmente. Ele usa o resumo eleitoral já versionado em `eleicoes/`, atualizado pelo workflow mensal descrito em [Eleições](#eleições).

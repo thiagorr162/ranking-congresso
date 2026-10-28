@@ -24,3 +24,16 @@ def test_salva_envelope_com_metadados(tmp_path) -> None:
     assert documento["fonte"] == "camara"
     assert documento["total"] == 1
     assert documento["dados"][0]["id_fonte"] == "1"
+
+
+def test_espera_mais_quando_a_api_pede_calma() -> None:
+    from email.message import Message
+    from urllib.error import HTTPError
+
+    from deputados.http import _espera
+
+    cabecalhos = Message()
+    cabecalhos["Retry-After"] = "7"
+    assert _espera(HTTPError("u", 429, "Too Many Requests", cabecalhos, None), 1) == 7
+    assert _espera(HTTPError("u", 429, "Too Many Requests", Message(), None), 2) == 30
+    assert _espera(TimeoutError(), 2) == 1

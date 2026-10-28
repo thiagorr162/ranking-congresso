@@ -13,7 +13,7 @@ class ApiError(RuntimeError):
 
 
 class JsonClient:
-    def __init__(self, base_url: str, *, timeout: float = 30, attempts: int = 3) -> None:
+    def __init__(self, base_url: str, *, timeout: float = 30, attempts: int = 5) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.attempts = attempts
@@ -47,6 +47,14 @@ class JsonClient:
             except (HTTPError, URLError, TimeoutError, ConnectionError, IncompleteRead, json.JSONDecodeError) as error:
                 if attempt == self.attempts:
                     raise ApiError(f"Falha ao consultar {url}: {error}") from error
-                time.sleep(0.5 * 2 ** (attempt - 1))
+                time.sleep(_espera(error, attempt))
 
         raise AssertionError("laço de tentativas terminou sem retorno")
+
+
+def _espera(error: Exception, attempt: int) -> float:
+    """Segundos até a próxima tentativa; em 429 (muitas requisições), respeita o Retry-After da API."""
+    if isinstance(error, HTTPError) and error.code == 429:
+        retry_after = (error.headers or {}).get("Retry-After", "")
+        return float(retry_after) if retry_after.isdigit() else 15.0 * attempt
+    return 0.5 * 2 ** (attempt - 1)
