@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -18,13 +19,35 @@ concurrency:
 jobs:
   construir:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked
       - run: uv run pytest
-      - name: Coletar dados da Câmara e do Senado
-        run: uv run deputados coletar --casa todas
+      - name: Recuperar a última coleta salva
+        # Se uma casa falhar abaixo, o site é gerado com os dados anteriores dela.
+        continue-on-error: true
+        run: |
+          execucao=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=dados-coletados" --jq '.artifacts[0].workflow_run.id')
+          gh run download "$execucao" --repo "$GITHUB_REPOSITORY" --name dados-coletados --dir data/raw
+      - name: Coletar dados da Câmara
+        continue-on-error: true
+        run: uv run deputados coletar --casa camara
+      - name: Coletar dados do Senado
+        continue-on-error: true
+        run: uv run deputados coletar --casa senado
+      - name: Salvar dados coletados
+        # Salva mesmo se algo falhar depois, para a próxima execução aproveitar o que já foi coletado.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dados-coletados
+          path: data/raw
+          retention-days: 90
+          if-no-files-found: ignore
       - name: Construir site
         run: uv run deputados construir-site
       - uses: actions/upload-pages-artifact@v3

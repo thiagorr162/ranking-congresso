@@ -27,7 +27,8 @@ class SenadoSource:
         get_json: Callable[..., dict[str, Any]] | None = None,
         get_admin_json: Callable[..., list[dict[str, Any]]] | None = None,
     ) -> None:
-        self._get = get_json or JsonClient(BASE_URL).get
+        # A API legislativa do Senado limita chamadas seguidas (HTTP 429): as chamadas por senador vão espaçadas.
+        self._get = get_json or JsonClient(BASE_URL, intervalo=1.5).get
         self._get_admin = get_admin_json or JsonClient(ADMIN_BASE_URL).get
 
     def parlamentares(self) -> list[Parlamentar]:

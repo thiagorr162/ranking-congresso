@@ -1,0 +1,50 @@
+name: Publicar sem coletar
+
+# Gera o site com os dados da última coleta salva, sem chamar nenhuma API.
+# Útil para publicar mudanças no visual ou no código do site.
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Recuperar a última coleta salva
+        run: |
+          execucao=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=dados-coletados" --jq '.artifacts[0].workflow_run.id')
+          if [ -z "$execucao" ] || [ "$execucao" = "null" ]; then
+            echo "::error::Nenhuma coleta salva encontrada. Rode o workflow 'Atualizar site' uma vez antes."
+            exit 1
+          fi
+          gh run download "$execucao" --repo "$GITHUB_REPOSITORY" --name dados-coletados --dir data/raw
+      - name: Construir site
+        run: uv run deputados construir-site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  publicar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

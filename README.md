@@ -90,4 +90,12 @@ As equivalências exibidas junto aos gastos ("equivalente a X salários mínimos
 
 ## Publicação
 
-O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages toda segunda-feira, além de poder ser disparado manualmente. Ele usa o resumo eleitoral já versionado em `eleicoes/`, atualizado pelo workflow mensal descrito em [Eleições](#eleições).
+Há três workflows:
+
+| Workflow | Quando roda | O que faz |
+|---|---|---|
+| `atualizar.yml` (Atualizar site) | toda segunda-feira e sob demanda | coleta Câmara e Senado, salva os dados coletados por 90 dias, gera o site e publica |
+| `publicar.yml` (Publicar sem coletar) | só sob demanda | gera o site com a última coleta salva, sem chamar APIs; serve para publicar mudanças no visual ou no código |
+| `eleicoes.yml` (Atualizar dados eleitorais) | dia 1 de cada mês e sob demanda | refaz o resumo do TSE em `eleicoes/` |
+
+Câmara e Senado são coletados em passos separados. Se uma das casas falhar (por exemplo, por limite de requisições da API), o site é gerado com os dados da última coleta salva daquela casa, em vez de deixar de ser atualizado. Ele usa o resumo eleitoral já versionado em `eleicoes/`, atualizado pelo workflow mensal descrito em [Eleições](#eleições).
