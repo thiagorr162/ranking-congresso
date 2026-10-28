@@ -2,6 +2,7 @@ const comparisonNumber = new Intl.NumberFormat("pt-BR", { maximumFractionDigits:
 const comparisonMoney = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const comparisonInterval = 4500;
 let comparisonsRequest;
+const runningComparisons = new WeakMap();
 
 function loadComparisons() {
   comparisonsRequest ??= fetch("comparacoes.json").then((response) => {
@@ -12,7 +13,12 @@ function loadComparisons() {
 }
 
 async function startComparisons(target, amount) {
-  if (!target || !(amount > 0)) return;
+  if (!target) return;
+  runningComparisons.get(target)?.abort();
+  const controller = new AbortController();
+  runningComparisons.set(target, controller);
+  target.hidden = true;
+  if (!(amount > 0)) return;
   let items;
   try {
     items = (await loadComparisons()).filter((item) => amount >= item.valor);
@@ -20,7 +26,7 @@ async function startComparisons(target, amount) {
     console.error(error);
     return;
   }
-  if (!items.length) return;
+  if (controller.signal.aborted || !items.length) return;
 
   const link = document.createElement("a");
   link.target = "_blank";
@@ -49,10 +55,12 @@ async function startComparisons(target, amount) {
     timer = null;
   };
 
-  target.addEventListener("mouseenter", pause);
-  target.addEventListener("mouseleave", play);
-  link.addEventListener("focus", pause);
-  link.addEventListener("blur", play);
+  const { signal } = controller;
+  target.addEventListener("mouseenter", pause, { signal });
+  target.addEventListener("mouseleave", play, { signal });
+  link.addEventListener("focus", pause, { signal });
+  link.addEventListener("blur", play, { signal });
+  signal.addEventListener("abort", pause);
 
   show();
   play();

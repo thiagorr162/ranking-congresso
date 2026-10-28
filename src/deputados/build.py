@@ -164,6 +164,7 @@ def _agregar(
                 "uf": parlamentar["uf"],
                 "foto": parlamentar["url_foto"],
                 "perfil_oficial": parlamentar["url_perfil"],
+                "email": parlamentar.get("email"),
                 "total_gasto": round(total, 2),
                 "quantidade_despesas": len(registros),
                 "maior_despesa": round(maior["valor"], 2) if maior else 0,

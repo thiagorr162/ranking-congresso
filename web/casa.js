@@ -43,10 +43,11 @@ function dataUrl(path) {
 
 function renderNav() {
   const nav = document.querySelector("#nav-casas");
-  if (!nav) return;
-  nav.innerHTML = Object.entries(CASAS).map(([id, casa]) =>
-    `<a${id === CASA_ID ? ' class="active"' : ""} href="${id === "camara" ? "./" : `./?casa=${id}`}">${casa.menu}</a>`
-  ).join("");
+  if (nav) {
+    nav.innerHTML = Object.entries(CASAS).map(([id, casa]) =>
+      `<a${id === CASA_ID ? ' class="active"' : ""} href="${id === "camara" ? "./" : `./?casa=${id}`}">${casa.menu}</a>`
+    ).join("");
+  }
   document.querySelectorAll("[data-orgao]").forEach((element) => { element.textContent = CASA.orgao; });
   document.querySelectorAll("[data-rotulo-falta]").forEach((element) => { element.textContent = CASA.rotuloFalta; });
   document.querySelectorAll("[data-so-senado]").forEach((element) => { element.hidden = !CASA.temJustificativas; });

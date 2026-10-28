@@ -6,6 +6,8 @@ const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singul
 
 const criteria = {
   total_gasto: {
+    label: "Mais gastou",
+    amount: (senador) => senador.total_gasto,
     description: "Total reembolsado pela cota no ano.",
     value: (senador) => money.format(senador.total_gasto),
     detail: (senador) => `${senador.quantidade_despesas} despesas`,
@@ -15,6 +17,8 @@ const criteria = {
     compare: (a, b) => b.total_gasto - a.total_gasto,
   },
   maior_despesa: {
+    label: "Maior despesa",
+    amount: (senador) => senador.maior_despesa,
     description: "Maior reembolso individual registrado no ano.",
     value: (senador) => money.format(senador.maior_despesa),
     detail: (senador) => senador.maior_despesa_fornecedor || "Sem despesas",
@@ -24,6 +28,7 @@ const criteria = {
     compare: (a, b) => b.maior_despesa - a.maior_despesa,
   },
   faltas: {
+    label: "Mais faltou",
     description: CASA.faltas,
     value: (senador) => `${senador.faltas} ${senador.faltas === 1 ? "falta" : "faltas"}`,
     detail: (senador) => `${senador.percentual_presenca}% de presença`,
@@ -33,6 +38,7 @@ const criteria = {
     compare: (a, b) => b.faltas - a.faltas,
   },
   projetos: {
+    label: "Menos projetos",
     description: "Projetos de lei e PECs apresentados no ano, como autor ou coautor. Quem apresentou menos aparece primeiro.",
     value: (senador) => plural(senador.projetos, "projeto", "projetos"),
     detail: (senador) => `${senador.projetos_tramitando} em tramitação`,
@@ -50,6 +56,31 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function renderTop(criterion) {
+  const top = [...state.data.parlamentares].sort(criterion.compare)[0];
+  const name = document.querySelector("#maior-nome");
+  const photo = document.querySelector("#maior-foto");
+  document.querySelector("#destaque-rotulo").textContent = `1º lugar · ${criterion.label}`;
+  document.querySelector("#maior-partido").textContent = top
+    ? [`${top.partido} · ${top.uf}`, top.exercicio_inicio && `atuando desde ${date.format(new Date(`${top.exercicio_inicio}T00:00:00Z`))}`].filter(Boolean).join(" · ")
+    : "";
+  const contact = document.querySelector("#maior-contato");
+  contact.replaceChildren();
+  if (top?.email) {
+    const email = document.createElement("a");
+    email.href = `mailto:${top.email}`;
+    email.textContent = top.email;
+    contact.append(email);
+  }
+  document.querySelector("#maior-detalhe").textContent = top ? criterion.detail(top) : "";
+  name.textContent = top?.nome || "—";
+  name.href = top ? pageUrl("perfil.html", { id: top.id }) : "";
+  photo.hidden = !top?.foto;
+  if (top?.foto) photo.src = top.foto;
+  document.querySelector("#maior-valor").textContent = top ? criterion.value(top) : "";
+  startComparisons(document.querySelector("#comparacao-maior"), top && criterion.amount ? criterion.amount(top) : 0);
 }
 
 function render() {
@@ -98,21 +129,12 @@ async function load() {
     const response = await fetch(dataUrl());
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
-    const top = [...state.data.parlamentares].sort((a, b) => b.total_gasto - a.total_gasto)[0];
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
     startComparisons(document.querySelector("#comparacao-total"), state.data.total_gasto);
-    document.querySelector("#maior-nome").textContent = top?.nome || "—";
-    if (top) {
-      document.querySelector("#maior-nome").href = pageUrl("perfil.html", { id: top.id });
-      const photo = document.querySelector("#maior-foto");
-      photo.src = top.foto;
-      photo.hidden = !top.foto;
-    }
-    document.querySelector("#maior-valor").textContent = top ? money.format(top.total_gasto) : "";
-    startComparisons(document.querySelector("#comparacao-maior"), top?.total_gasto);
     document.querySelector("#atualizado").textContent = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" })
       .format(new Date(state.data.atualizado_em));
     document.querySelector("#fonte").href = state.data.fonte;
+    renderTop(criteria[state.sort]);
     render();
   } catch (error) {
     console.error(error);
@@ -125,6 +147,7 @@ document.querySelectorAll("[data-sort]").forEach((button) => {
     document.querySelector(".filters .selected")?.classList.remove("selected");
     button.classList.add("selected");
     state.sort = button.dataset.sort;
+    renderTop(criteria[state.sort]);
     render();
   });
 });

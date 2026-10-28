@@ -201,6 +201,14 @@ async function load() {
     document.querySelector("#ver-todas").href = pageUrl("despesas.html", { id: senatorId, criterio: "total_gasto" });
     document.querySelector("#ver-fornecedor").href = pageUrl("despesas.html", { id: senatorId, criterio: "concentracao_fornecedor" });
     document.querySelector("#ver-frequencia").href = pageUrl("frequencia.html", { id: senatorId });
+    const biggest = expensesData.despesas.find((item) =>
+      item.valor === summary.maior_despesa && item.fornecedor === summary.maior_despesa_fornecedor
+    );
+    document.querySelector("#maior-fato").textContent = biggest ? biggest.fornecedor || biggest.tipo : "Sem despesas";
+    document.querySelector("#maior-valor-fato").textContent = biggest ? `${money.format(biggest.valor)} · ${biggest.tipo}` : "";
+    if (biggest) {
+      document.querySelector("#ver-maior").href = pageUrl("despesa.html", { id: senatorId, despesa: biggest.id_fonte });
+    }
     document.querySelector("#fonte").href = data.fonte;
     renderExpenseCharts(expensesData.despesas);
     renderAttendance(summary);
