@@ -131,6 +131,7 @@ async function load() {
     state.data = await response.json();
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
     startComparisons(document.querySelector("#comparacao-total"), state.data.total_gasto);
+    document.querySelector("#coluna-valor").textContent = `Valor em ${state.data.ano}`;
     document.querySelector("#atualizado").textContent = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" })
       .format(new Date(state.data.atualizado_em));
     document.querySelector("#fonte").href = state.data.fonte;
