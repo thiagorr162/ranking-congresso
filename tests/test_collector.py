@@ -36,4 +36,40 @@ def test_espera_mais_quando_a_api_pede_calma() -> None:
     cabecalhos["Retry-After"] = "7"
     assert _espera(HTTPError("u", 429, "Too Many Requests", cabecalhos, None), 1) == 7
     assert _espera(HTTPError("u", 429, "Too Many Requests", Message(), None), 2) == 30
-    assert _espera(TimeoutError(), 2) == 1
+    assert _espera(TimeoutError(), 2) == 10
+    assert _espera(TimeoutError(), 6) == 60
+
+
+def test_retoma_download_cortado_no_meio(monkeypatch) -> None:
+    from http.client import IncompleteRead
+
+    from deputados import http
+
+    pedidos = []
+
+    class Resposta:
+        def __init__(self, status, corpo, corta=False):
+            self.status, self.corpo, self.corta = status, corpo, corta
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            if self.corta:
+                raise IncompleteRead(self.corpo, 10)
+            return self.corpo
+
+    def fake_urlopen(pedido, timeout):
+        pedidos.append(pedido.get_header("Range"))
+        if len(pedidos) == 1:
+            return Resposta(200, b'{"dados": [1, ', corta=True)
+        return Resposta(206, b"2]}")
+
+    monkeypatch.setattr(http, "urlopen", fake_urlopen)
+    monkeypatch.setattr(http.time, "sleep", lambda segundos: None)
+
+    assert http.JsonClient("https://example.test", intervalo=0).get("arquivo.json") == {"dados": [1, 2]}
+    assert pedidos == [None, "bytes=14-"]

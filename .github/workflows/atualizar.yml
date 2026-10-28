@@ -2,8 +2,8 @@ name: Atualizar site
 
 on:
   schedule:
-    # A cada 3 dias (dias 1, 4, 7, ..., 28 e 31 de cada mês) às 06:00 UTC (03:00 em Brasília)
-    - cron: "0 6 */3 * *"
+    # Toda segunda-feira às 06:00 UTC (03:00 em Brasília)
+    - cron: "0 6 * * 1"
   workflow_dispatch:
 
 permissions:

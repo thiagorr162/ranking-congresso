@@ -65,8 +65,13 @@ class CamaraSource:
                     break
                 pagina += 1
 
+        # Um único arquivo com todos os deputados traz o nome civil, evitando uma chamada por deputado.
+        nomes_civis = {
+            str(item["uri"]).rsplit("/", 1)[-1]: item.get("nomeCivil")
+            for item in self._get_file("deputados/json/deputados.json").get("dados", [])
+        }
         return [
-            self._com_exercicio(parlamentar)
+            self._com_exercicio(replace(parlamentar, nome_civil=nomes_civis.get(parlamentar.id_fonte)))
             for parlamentar in tqdm(resultado, desc="Histórico dos deputados", unit="deputado", disable=None)
         ]
 
@@ -152,10 +157,8 @@ class CamaraSource:
             for item in historico
             if item.get("condicaoEleitoral")
         ]
-        detalhe = self._get(f"deputados/{parlamentar.id_fonte}").get("dados", {})
         return replace(
             parlamentar,
-            nome_civil=detalhe.get("nomeCivil") or parlamentar.nome_civil,
             exercicio_inicio=periodos[-1][0][:10] if periodos else None,
             periodos_exercicio=periodos,
             participacao=condicoes[-1] if condicoes else parlamentar.participacao,

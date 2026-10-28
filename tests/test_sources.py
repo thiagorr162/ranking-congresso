@@ -22,8 +22,6 @@ def test_normaliza_e_pagina_camara() -> None:
                     }
                 ]
             }
-        if path == "deputados/123":
-            return {"dados": {"nomeCivil": "MARIA DA SILVA"}}
         chamadas.append((path, params))
         return {
             "dados": [
@@ -39,7 +37,11 @@ def test_normaliza_e_pagina_camara() -> None:
             ]
         }
 
-    deputados = CamaraSource(fake_get).parlamentares()
+    def fake_file(path):
+        assert path == "deputados/json/deputados.json"
+        return {"dados": [{"uri": "https://example.test/api/v2/deputados/123", "nomeCivil": "MARIA DA SILVA"}]}
+
+    deputados = CamaraSource(fake_get, get_file_json=fake_file).parlamentares()
 
     assert len(chamadas) == 1
     assert deputados[0].id_fonte == "123"
