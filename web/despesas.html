@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Detalhes das despesas de um senador." />
+    <title>Despesas — Saiu do Seu Bolso</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="despesas.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
+      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+    </header>
+    <main>
+      <a id="voltar" class="back-link" href="./">← Voltar</a>
+      <section id="conteudo" hidden>
+        <div class="page-heading">
+          <p id="rotulo" class="eyebrow">DESPESAS</p>
+          <h1 id="titulo"></h1>
+          <p id="descricao"></p>
+        </div>
+        <div class="list-tools">
+          <p id="contagem" class="result-count"></p>
+          <label class="sort-control">Ordenar por
+            <select id="ordenacao">
+              <option value="data_desc">Mais recentes</option>
+              <option value="data_asc">Mais antigas</option>
+              <option value="valor_desc">Maior valor</option>
+              <option value="valor_asc">Menor valor</option>
+              <option value="descricao_asc">Descrição A–Z</option>
+              <option value="fornecedor_asc">Fornecedor A–Z</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table class="expenses-table">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Fornecedor</th><th>Documento</th><th>Valor</th></tr></thead>
+            <tbody id="despesas"></tbody>
+          </table>
+        </div>
+        <section class="detail-section"><a id="fonte" class="official-link" target="_blank" rel="noreferrer">Conferir dados oficiais ↗</a></section>
+      </section>
+      <p id="erro" class="error" hidden>Não foi possível carregar as despesas.</p>
+    </main>
+  </body>
+</html>

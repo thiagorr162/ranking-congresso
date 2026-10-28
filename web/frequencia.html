@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Presenças e ausências oficiais de um senador." />
+    <title>Frequência — Saiu do Seu Bolso</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="frequencia.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
+      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+    </header>
+    <main>
+      <a id="voltar" class="back-link" href="./">← Voltar</a>
+      <section id="conteudo" hidden>
+        <div class="page-heading">
+          <p class="eyebrow">FREQUÊNCIA</p>
+          <h1 id="nome"></h1>
+          <p>Sessões deliberativas com votação nominal.</p>
+        </div>
+        <div class="detail-grid frequency-summary">
+          <article class="metric-card"><span>Presenças</span><strong id="presencas"></strong></article>
+          <article class="metric-card"><span>Não compareceu</span><strong id="faltas"></strong></article>
+          <article class="metric-card"><span>Justificadas</span><strong id="justificadas"></strong></article>
+          <article class="metric-card"><span>Presença</span><strong id="percentual"></strong></article>
+        </div>
+        <section class="detail-section">
+          <div class="filters" role="group" aria-label="Filtrar sessões">
+            <button class="selected" data-filter="falta">Não compareceu</button>
+            <button data-filter="justificada">Justificadas</button>
+            <button data-filter="todas">Todas</button>
+          </div>
+          <p id="contagem" class="result-count"></p>
+          <div class="table-wrap">
+            <table class="expenses-table">
+              <thead><tr><th>Data</th><th>Situação</th><th>Motivo oficial</th><th>Votações</th></tr></thead>
+              <tbody id="sessoes"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+      <p id="erro" class="error" hidden>Não foi possível carregar a frequência.</p>
+    </main>
+  </body>
+</html>

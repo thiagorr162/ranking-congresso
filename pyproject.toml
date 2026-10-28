@@ -1,55 +1,37 @@
-[tool.poetry]
-name = "de-putados"
+[project]
+name = "saiu-do-seu-bolso"
 version = "0.1.0"
-description = "Use this config file as template for your project."
-authors = ["Your Name <you@example.com>"]
+description = "Dados parlamentares oficiais em linguagem simples."
 readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Projeto Saiu do Seu Bolso" }]
+dependencies = [
+    "tqdm>=4.67.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pandas = "^2.2.3"
-numpy = "^2.1.3"
-beautifulsoup4 = "^4.12.3"
-requests = "^2.32.3"
+[project.scripts]
+deputados = "deputados.cli:main"
 
-[tool.black]
-line-length = 120
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-line_length = 120
-multi_line_output = 3
-include_trailing_comma = true
-profile = "black"
-
-[tool.flake8]
-max-line-length = 120
-max-complexity = 20
-exclude = ".git"
-select = "B,C,E,F,W,T4,B9"
-ignore = "E203, E266, E501, W503, F403, F401"
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^3.6.0"
-black = "^24.3.0"
-isort = "^5.13.2"
-
-[tool.poetry.scripts]
-post-update = "sh -c 'poetry update && pre-commit install'"
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.8.0",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/deputados"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,24 +1,58 @@
-## Project Repository Template
+# Saiu do Seu Bolso
 
-Use this as a foundation to kickstart your project repository. To get started, simply click on the green button labeled 'Use this template'.
+Dados oficiais de deputados e senadores apresentados em linguagem simples. O projeto começa pelas APIs da Câmara dos Deputados e do Senado Federal, sem scraping de HTML.
 
-![Repository Image](https://github.com/giva-lab/template/assets/30710465/67e8f0af-25b6-4c26-8bbd-2a601a53f001)
+## Configuração
 
-### Getting Started
+```bash
+uv sync
+```
 
+## Coleta
 
-1. **Clone Repository:** Clone this repository onto your local machine.
-2. **Install Poetry:** Ensure you have Poetry installed on your system.
-3. **Setup Environment:** Open a terminal in the project's root directory and execute the following commands:
-    ```bash
-    poetry shell
-    poetry update
-    pre-commit install
-    ```
-4. **Ready to Go!** You're all set to start working on the project!
+```bash
+# Câmara e Senado
+uv run deputados coletar --casa todas
 
-### Additional Notes
+# Uma casa específica
+uv run deputados coletar --casa camara
+uv run deputados coletar --casa senado
+```
 
-- **Adding Packages:** You can add new packages via Poetry using the command `poetry add {package name}`. Please **DO NOT** add packages via pip, as it may lead to version conflicts in the future.
+Os arquivos são gravados em `data/raw/<casa>/parlamentares.json`. Cada arquivo informa a fonte, o instante da coleta e os registros em um formato comum.
 
-- **Commit Changes:** After adding a new package, remember to commit the modified `pyproject.toml` file so that other project members can access the new packages.
+Ao coletar o Senado, o projeto também baixa as despesas da CEAPS do ano atual. Para informar outro ano:
+
+```bash
+uv run deputados coletar --casa senado --ano 2025
+```
+
+## Site
+
+Depois da coleta, gere a página estática:
+
+```bash
+uv run deputados construir-site --ano 2026
+uv run deputados servir-site
+```
+
+Abra `http://localhost:8000`. A pasta `dist/` fica pronta para publicação no GitHub Pages.
+
+## Qualidade
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest
+```
+
+## Fontes
+
+- Câmara: `https://dadosabertos.camara.leg.br/api/v2`
+- Senado: `https://legis.senado.leg.br/dadosabertos`
+
+## Próximas etapas
+
+1. Criar a página de deputados.
+2. Automatizar a atualização diária.
+3. Adicionar análises de anomalias, sempre exibindo evidências e fontes.

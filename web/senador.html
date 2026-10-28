@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Resumo dos gastos e das faltas de um senador." />
+    <title>Senador — Saiu do Seu Bolso</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="senador.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
+      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+    </header>
+    <main>
+      <a class="back-link" href="./">← Voltar ao ranking</a>
+      <section id="conteudo" hidden>
+        <div class="profile-hero">
+          <img id="foto" alt="" />
+          <div>
+            <p class="eyebrow">SENADOR</p>
+            <h1 id="nome"></h1>
+            <div id="meta" class="profile-meta"></div>
+            <a id="perfil-oficial" class="official-link" target="_blank" rel="noreferrer">Perfil oficial ↗</a>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <article class="metric-card"><span>Gasto no ano</span><strong id="total"></strong><small id="quantidade"></small></article>
+          <article class="metric-card"><span>Maior despesa</span><strong id="maior"></strong><small id="maior-fornecedor"></small></article>
+          <article class="metric-card"><span>Principal fornecedor</span><strong id="concentracao"></strong><small id="fornecedor"></small></article>
+          <article class="metric-card"><span>Não compareceu</span><strong id="faltas"></strong><small id="presenca"></small></article>
+        </div>
+
+        <section class="detail-section">
+          <h2>Onde mais gastou</h2>
+          <div class="fact-list">
+            <div class="fact-group">
+              <a id="ver-todas" class="fact-action">Ver todos os gastos <span aria-hidden="true">→</span></a>
+              <article class="fact">
+                <span>Categoria principal</span><strong id="categoria"></strong><small id="categoria-valor"></small>
+              </article>
+            </div>
+            <div class="fact-group">
+              <a id="ver-fornecedor" class="fact-action">Ver despesas deste fornecedor <span aria-hidden="true">→</span></a>
+              <article class="fact">
+                <span>Fornecedor principal</span><strong id="fornecedor-fato"></strong><small id="fornecedor-valor"></small>
+              </article>
+            </div>
+          </div>
+        </section>
+        <section class="detail-section charts-section">
+          <h2>Gastos em gráficos</h2>
+          <div class="charts-grid">
+            <article class="chart-card">
+              <h3>Gasto por mês</h3>
+              <div id="grafico-meses" class="bar-chart" aria-label="Gastos mensais"></div>
+            </article>
+            <article class="chart-card">
+              <h3>Principais categorias</h3>
+              <div id="grafico-categorias" class="bar-chart" aria-label="Gastos por categoria"></div>
+            </article>
+            <article class="chart-card timeline-card">
+              <h3>Evolução mensal dos gastos</h3>
+              <p class="chart-hint">Passe o cursor ou toque nos pontos para ver os detalhes.</p>
+              <div id="grafico-serie-temporal" class="timeline-chart" aria-label="Série temporal dos gastos mensais"></div>
+            </article>
+          </div>
+        </section>
+        <section class="detail-section frequency-callout">
+          <h2>Presença em sessões deliberativas</h2>
+          <p><strong id="justificadas"></strong> ausências justificadas no período.</p>
+          <div id="grafico-presenca" class="attendance-chart" aria-label="Resumo de presença e ausências"></div>
+          <a id="ver-frequencia" class="official-link">Ver sessões e justificativas →</a>
+        </section>
+      </section>
+      <p id="erro" class="error" hidden>Não foi possível carregar este senador.</p>
+    </main>
+    <footer><span>Dados oficiais do Senado Federal</span><a id="fonte" target="_blank" rel="noreferrer">Conferir fonte ↗</a></footer>
+  </body>
+</html>

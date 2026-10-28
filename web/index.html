@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Ranking simples e verificável dos gastos dos senadores brasileiros." />
+    <title>Saiu do Seu Bolso — Ranking dos Senadores</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Saiu do Seu Bolso, início">
+        <span class="brand-mark">SB</span>
+        <span>Saiu do Seu Bolso</span>
+      </a>
+      <nav aria-label="Navegação principal">
+        <a class="active" href="./">Senadores</a>
+        <span class="soon">Deputados <small>em breve</small></span>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">Pra onde vai o seu dinheiro?</p>
+        <h1>Ranking dos senadores</h1>
+      </section>
+
+      <section class="summary" aria-label="Resumo">
+        <article>
+          <span>Total no ano</span>
+          <strong id="total-gasto">—</strong>
+        </article>
+        <article>
+          <span>Maior gasto</span>
+          <strong id="maior-nome">—</strong>
+          <small id="maior-valor"></small>
+        </article>
+        <article>
+          <span>Dados atualizados</span>
+          <strong id="atualizado">—</strong>
+        </article>
+      </section>
+
+      <section class="ranking-section">
+        <div class="ranking-head">
+          <div>
+            <h2>Quem está no topo?</h2>
+            <p id="criterio-explicacao">Total reembolsado pela cota no ano.</p>
+          </div>
+          <label class="search">
+            <span class="sr-only">Buscar senador</span>
+            <input id="busca" type="search" placeholder="Buscar senador, partido ou UF" />
+          </label>
+        </div>
+
+        <div class="filters" role="group" aria-label="Critério do ranking">
+          <button class="selected" data-sort="total_gasto">Mais gastou</button>
+          <button data-sort="maior_despesa">Maior despesa</button>
+          <button data-sort="faltas">Mais faltou</button>
+        </div>
+
+        <div class="list-header" aria-hidden="true">
+          <span>Posição</span>
+          <span>Senador</span>
+          <span>Descrição</span>
+          <span>Valor</span>
+        </div>
+        <ol id="ranking" class="ranking" aria-live="polite"></ol>
+        <p id="erro" class="error" hidden>Não foi possível carregar os dados.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>Fonte oficial: Senado Federal</span>
+      <a id="fonte" href="https://www12.senado.leg.br/dados-abertos/" target="_blank" rel="noreferrer">Conferir dados ↗</a>
+    </footer>
+  </body>
+</html>
