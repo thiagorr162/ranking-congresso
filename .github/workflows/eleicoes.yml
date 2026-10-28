@@ -1,0 +1,38 @@
+name: Atualizar dados eleitorais
+
+on:
+  schedule:
+    # Dia 1 de cada mês às 07:00 UTC (04:00 em Brasília)
+    - cron: "0 7 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eleicoes
+  cancel-in-progress: false
+
+jobs:
+  resumir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Coletar parlamentares atuais
+        run: uv run deputados coletar --casa todas
+      - name: Resumir dados do TSE
+        run: uv run deputados coletar-eleicoes
+      - name: Salvar resumo no repositório
+        run: |
+          git add eleicoes/
+          if git diff --cached --quiet; then
+            echo "Resumo eleitoral sem mudanças."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "dados: atualiza resumo eleitoral do TSE"
+          git push

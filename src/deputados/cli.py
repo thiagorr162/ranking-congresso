@@ -1,4 +1,5 @@
 import argparse
+import json
 from datetime import UTC, datetime
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -9,6 +10,8 @@ from deputados.collector import salvar, salvar_autorias, salvar_comparecimentos,
 from deputados.sources import camara, senado
 from deputados.sources.camara import CamaraSource
 from deputados.sources.senado import SenadoSource
+from deputados.sources.tse import SOURCE_URL as TSE_URL
+from deputados.sources.tse import TseSource
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -23,6 +26,12 @@ def _parser() -> argparse.ArgumentParser:
     construir.add_argument("--ano", type=int, default=datetime.now(UTC).year)
     construir.add_argument("--dados", type=Path, default=Path("data/raw"))
     construir.add_argument("--saida", type=Path, default=Path("dist"))
+    construir.add_argument("--eleicoes", type=Path, default=Path("eleicoes"))
+
+    eleicoes = subparsers.add_parser("coletar-eleicoes", help="Resume dados eleitorais do TSE dos parlamentares")
+    eleicoes.add_argument("--dados", type=Path, default=Path("data/raw"))
+    eleicoes.add_argument("--cache", type=Path, default=Path("data/tse"))
+    eleicoes.add_argument("--saida", type=Path, default=Path("eleicoes"))
 
     servir = subparsers.add_parser("servir-site", help="Inicia o servidor local do site")
     servir.add_argument("--pasta", type=Path, default=Path("dist"))
@@ -89,6 +98,37 @@ def _coletar_casa(
     print(f"{nome}: {len(autorias)} autorias -> {destino}")
 
 
+def ultima_eleicao_geral(ano: int) -> int:
+    """Eleição que elegeu a legislatura em curso: em ano de eleição, os eleitos só assumem no ano seguinte."""
+    anterior = ano - (ano - 2) % 4
+    return anterior - 4 if anterior == ano else anterior
+
+
+def coletar_eleicoes(dados: Path, cache: Path, saida: Path) -> int:
+    hoje = datetime.now(UTC).date()
+    # A legislatura nova só toma posse em 1º de fevereiro: em janeiro, o Congresso ainda é o anterior.
+    ultima = ultima_eleicao_geral(hoje.year - (hoje.month == 1))
+    # Senadores têm mandato de 8 anos: os atuais saíram das duas últimas eleições gerais.
+    anos_por_casa = {"camara": [ultima], "senado": [ultima - 4, ultima]}
+    fonte = TseSource(cache)
+    saida.mkdir(parents=True, exist_ok=True)
+    for casa, anos in anos_por_casa.items():
+        parlamentares = json.loads((dados / casa / "parlamentares.json").read_text(encoding="utf-8"))["dados"]
+        resumo = fonte.resumir(casa, parlamentares, anos)
+        destino = saida / f"{casa}.json"
+        documento = {
+            "fonte": TSE_URL,
+            "anos": anos,
+            "gerado_em": datetime.now(UTC).isoformat(),
+            "ligados": len(resumo),
+            "total": len(parlamentares),
+            "parlamentares": resumo,
+        }
+        destino.write_text(json.dumps(documento, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+        print(f"{casa}: {len(resumo)} de {len(parlamentares)} parlamentares ligados ao TSE -> {destino}")
+    return 0
+
+
 def servir_site(pasta: Path, porta: int) -> int:
     if not (pasta / "index.html").exists():
         raise FileNotFoundError(f"Site não encontrado em {pasta}. Execute 'construir-site' primeiro.")
@@ -109,9 +149,11 @@ def main() -> int:
     if args.comando == "coletar":
         return coletar(args.casa, args.saida, args.ano)
     if args.comando == "construir-site":
-        destino = construir_site(ano=args.ano, data_dir=args.dados, output_dir=args.saida)
+        destino = construir_site(ano=args.ano, data_dir=args.dados, output_dir=args.saida, eleicoes_dir=args.eleicoes)
         print(f"site construído -> {destino}")
         return 0
+    if args.comando == "coletar-eleicoes":
+        return coletar_eleicoes(args.dados, args.cache, args.saida)
     if args.comando == "servir-site":
         return servir_site(args.pasta, args.porta)
     return 1

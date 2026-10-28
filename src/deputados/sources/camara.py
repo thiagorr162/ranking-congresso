@@ -152,8 +152,10 @@ class CamaraSource:
             for item in historico
             if item.get("condicaoEleitoral")
         ]
+        detalhe = self._get(f"deputados/{parlamentar.id_fonte}").get("dados", {})
         return replace(
             parlamentar,
+            nome_civil=detalhe.get("nomeCivil") or parlamentar.nome_civil,
             exercicio_inicio=periodos[-1][0][:10] if periodos else None,
             periodos_exercicio=periodos,
             participacao=condicoes[-1] if condicoes else parlamentar.participacao,

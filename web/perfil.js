@@ -131,6 +131,60 @@ function renderAttendance(summary) {
     <div class="attendance-legend">${items.map((item) => `<span><i class="${item.className}"></i>${item.label}: <strong>${item.value}</strong></span>`).join("")}</div>`;
 }
 
+function renderCampaignCard(summary, person) {
+  const detail = document.querySelector("#campanha-detalhe");
+  if (summary.campanha_custo === null || summary.campanha_custo === undefined) {
+    document.querySelector("#campanha-custo").textContent = "—";
+    document.querySelector("#preco-voto").textContent = "—";
+    detail.textContent = CASA_ID === "senado" && /suplente/i.test(person.participacao || "")
+      ? "Suplente: sem campanha própria"
+      : "Sem dados no TSE";
+    return;
+  }
+  const share = summary.campanha_receitas ? Math.round(summary.campanha_publico / summary.campanha_receitas * 100) : 0;
+  document.querySelector("#campanha-rotulo").textContent = `Campanha de ${summary.campanha_ano}`;
+  const cost = document.querySelector("#campanha-custo");
+  cost.textContent = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 2 })
+    .format(summary.campanha_custo);
+  cost.title = money.format(summary.campanha_custo);
+  detail.textContent = `${share}% dinheiro público`;
+  const votes = new Intl.NumberFormat("pt-BR").format(summary.campanha_votos);
+  document.querySelector("#preco-voto").textContent = summary.campanha_votos ? money.format(summary.campanha_custo / summary.campanha_votos) : "—";
+  document.querySelector("#preco-voto-detalhe").textContent = `${votes} votos`;
+  startComparisons(document.querySelector("#comparacao-campanha"), summary.campanha_custo);
+}
+
+function renderElection(election, person) {
+  const note = document.querySelector("#eleicao-nota");
+  if (!election) {
+    note.textContent = CASA_ID === "senado" && /suplente/i.test(person.participacao || "")
+      ? "Suplente de senador não faz campanha própria: a prestação de contas da chapa fica no nome do titular."
+      : "Não encontramos os dados eleitorais deste parlamentar no TSE.";
+    return;
+  }
+  const count = new Intl.NumberFormat("pt-BR");
+  const share = election.receitas ? Math.round(election.dinheiro_publico / election.receitas * 100) : 0;
+  document.querySelector("#eleicao-titulo").textContent = `Eleição de ${election.ano}`;
+  note.textContent = `Candidatura a ${election.cargo.toLowerCase()} por ${election.uf} (${election.partido}). Dados declarados ao TSE.`;
+  document.querySelector("#eleicao-custo").textContent = money.format(election.despesas);
+  document.querySelector("#eleicao-receitas").textContent = `${money.format(election.receitas)} arrecadados`;
+  document.querySelector("#eleicao-publico").textContent = money.format(election.dinheiro_publico);
+  document.querySelector("#eleicao-publico-pct").textContent = `${share}% do arrecadado, de fundos públicos`;
+  document.querySelector("#eleicao-votos").textContent = count.format(election.votos);
+  document.querySelector("#eleicao-situacao").textContent = election.situacao;
+  document.querySelector("#eleicao-custo-voto").textContent = election.votos ? money.format(election.despesas / election.votos) : "—";
+  renderBars(document.querySelector("#eleicao-origens"), election.receitas_por_fonte.map((item) => ({ label: item.fonte, value: item.valor })));
+  document.querySelector("#eleicao-repasses").textContent = election.repasses_a_outros
+    ? `Além do custo da campanha, repassou ${money.format(election.repasses_a_outros)} a outros candidatos e partidos.`
+    : "";
+  const previous = election.bens_anterior;
+  document.querySelector("#eleicao-patrimonio").textContent = previous
+    ? `Patrimônio declarado: ${money.format(previous.valor)} em ${previous.ano} → ${money.format(election.bens)} em ${election.ano}.`
+    : `Patrimônio declarado em ${election.ano}: ${money.format(election.bens)}.`;
+  document.querySelector("#ver-eleicao").href = pageUrl("eleicao.html", { id: senatorId });
+  document.querySelector("#eleicao-dados").hidden = false;
+}
+
 function renderProjects(projects) {
   const target = document.querySelector("#projetos-recentes");
   target.innerHTML = projects.length ? projects.slice(0, 5).map((project) => `
@@ -150,9 +204,10 @@ async function load() {
       fetch(dataUrl(`${base}/perfil.json`)),
       fetch(dataUrl(`${base}/despesas.json`)),
       fetch(dataUrl(`${base}/projetos.json`)),
+      fetch(dataUrl(`${base}/eleicao.json`)),
     ]);
     if (responses.some((response) => !response.ok)) throw new Error("Não foi possível carregar os dados");
-    const [data, expensesData, projectsData] = await Promise.all(responses.map((response) => response.json()));
+    const [data, expensesData, projectsData, electionData] = await Promise.all(responses.map((response) => response.json()));
     const person = data.parlamentar;
     const summary = data.resumo;
     document.title = `${person.nome} — Ranking do Congresso`;
@@ -184,6 +239,7 @@ async function load() {
     document.querySelector("#presenca").textContent = `${summary.percentual_presenca}% de presença`;
     document.querySelector("#justificadas").textContent = summary.faltas_justificadas;
     document.querySelector("#projetos").textContent = `${summary.projetos}`;
+    renderCampaignCard(summary, person);
     document.querySelector("#projetos-mes").textContent = `${summary.projetos_tramitando} em tramitação · ${summary.autorias} autorias no total`;
     document.querySelector("#ver-projetos").href = pageUrl("projetos.html", { id: senatorId });
     document.querySelector("#categoria").textContent = summary.categoria_principal || "Sem despesas";
@@ -203,6 +259,7 @@ async function load() {
     renderExpenseCharts(expensesData.despesas);
     renderAttendance(summary);
     renderProjects(projectsData.projetos);
+    renderElection(electionData.eleicao, person);
     document.querySelector("#conteudo").hidden = false;
   } catch (error) {
     console.error(error);

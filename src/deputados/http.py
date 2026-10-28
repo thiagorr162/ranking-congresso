@@ -1,6 +1,7 @@
 import json
 import time
 from collections.abc import Callable, Mapping
+from http.client import IncompleteRead
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -43,7 +44,7 @@ class JsonClient:
             try:
                 with urlopen(request, timeout=self.timeout) as response:  # noqa: S310 - URLs oficiais fixas
                     return converter(response.read())
-            except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            except (HTTPError, URLError, TimeoutError, ConnectionError, IncompleteRead, json.JSONDecodeError) as error:
                 if attempt == self.attempts:
                     raise ApiError(f"Falha ao consultar {url}: {error}") from error
                 time.sleep(0.5 * 2 ** (attempt - 1))

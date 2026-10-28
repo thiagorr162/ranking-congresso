@@ -22,6 +22,8 @@ def test_normaliza_e_pagina_camara() -> None:
                     }
                 ]
             }
+        if path == "deputados/123":
+            return {"dados": {"nomeCivil": "MARIA DA SILVA"}}
         chamadas.append((path, params))
         return {
             "dados": [
@@ -45,6 +47,7 @@ def test_normaliza_e_pagina_camara() -> None:
     assert deputados[0].legislatura == "57"
     assert deputados[0].exercicio_inicio == "2023-02-01"
     assert deputados[0].participacao == "Titular"
+    assert deputados[0].nome_civil == "MARIA DA SILVA"
 
 
 def test_normaliza_senado_com_um_parlamentar() -> None:
@@ -305,3 +308,51 @@ def test_autorias_da_camara_contam_so_proponentes_do_ano() -> None:
     assert autorias[0].identificacao == "PL 1/2026"
     assert autorias[0].tipo == "Projeto de Lei Ordinária"
     assert autorias[0].tramitando is False
+
+
+def test_tse_liga_parlamentar_a_candidatura_eleita(tmp_path) -> None:
+    from deputados.sources.tse import TseSource
+
+    candidatos = [
+        {
+            "DS_CARGO": "SENADOR",
+            "NR_TURNO": "1",
+            "SG_UF": "MG",
+            "NM_CANDIDATO": "JOÃO DA SILVA SOUZA",
+            "NM_URNA_CANDIDATO": "JOÃO SOUZA",
+            "SQ_CANDIDATO": "18",
+            "SG_PARTIDO": "XYZ",
+            "DS_SIT_TOT_TURNO": "ELEITO",
+            "NR_CPF_CANDIDATO": "1",
+        },
+        {
+            "DS_CARGO": "SENADOR",
+            "NR_TURNO": "1",
+            "SG_UF": "MG",
+            "NM_CANDIDATO": "JOÃO DA SILVA SOUZA",
+            "NM_URNA_CANDIDATO": "JOÃO SOUZA",
+            "SQ_CANDIDATO": "22",
+            "SG_PARTIDO": "XYZ",
+            "DS_SIT_TOT_TURNO": "NÃO ELEITO",
+            "NR_CPF_CANDIDATO": "1",
+        },
+    ]
+    fonte = TseSource(tmp_path)
+    fonte.linhas = lambda tipo, ano, prefixo="": iter(
+        [linha for linha in candidatos if linha["SQ_CANDIDATO"].startswith(str(ano)[2:])]
+    )
+    parlamentar = {"id_fonte": "456", "nome": "João Souza", "nome_civil": "João da Silva Souza", "uf": "MG"}
+
+    ligados = fonte._ligar("senado", [parlamentar], [2018, 2022])
+
+    ano, sq, dados = ligados["456"]
+    assert (ano, sq) == (2018, "18")
+    assert dados["situacao"] == "Eleito"
+
+
+def test_ultima_eleicao_geral() -> None:
+    from deputados.cli import ultima_eleicao_geral
+
+    assert ultima_eleicao_geral(2025) == 2022
+    assert ultima_eleicao_geral(2026) == 2022
+    assert ultima_eleicao_geral(2027) == 2026

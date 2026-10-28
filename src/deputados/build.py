@@ -169,14 +169,38 @@ def _escrever_json(destino: Path, conteudo: dict[str, Any]) -> None:
     destino.write_text(json.dumps(conteudo, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
-def _construir_casa(casa: str, *, ano: int, data_dir: Path, data_output: Path) -> None:
+def _resumo_eleicao(eleicao: dict[str, Any] | None) -> dict[str, Any]:
+    if not eleicao:
+        return dict.fromkeys(
+            ("campanha_ano", "campanha_custo", "campanha_publico", "campanha_receitas", "campanha_votos")
+        )
+    return {
+        "campanha_ano": eleicao["ano"],
+        "campanha_custo": eleicao["despesas"],
+        "campanha_publico": eleicao["dinheiro_publico"],
+        "campanha_receitas": eleicao["receitas"],
+        "campanha_votos": eleicao["votos"],
+    }
+
+
+def _construir_casa(casa: str, *, ano: int, data_dir: Path, eleicoes_dir: Path, data_output: Path) -> None:
     parlamentares_doc = _carregar(data_dir / casa / "parlamentares.json")
+    eleicoes_arquivo = eleicoes_dir / f"{casa}.json"
+    eleicoes_doc = json.loads(eleicoes_arquivo.read_text(encoding="utf-8")) if eleicoes_arquivo.exists() else {}
+    # Campanha sem nenhuma receita nem despesa indica dado incompleto (ex.: mandato vindo de eleição suplementar).
+    eleicoes = {
+        parlamentar_id: eleicao
+        for parlamentar_id, eleicao in eleicoes_doc.get("parlamentares", {}).items()
+        if eleicao["receitas"] or eleicao["despesas"]
+    }
     despesas_doc = _carregar(data_dir / casa / f"despesas-{ano}.json")
     comparecimentos_doc = _carregar(data_dir / casa / f"comparecimentos-{ano}.json")
     autorias_doc = _carregar(data_dir / casa / f"autorias-{ano}.json")
     frequencias = _agregar_frequencia(comparecimentos_doc["dados"])
     projetos = _agregar_projetos(parlamentares_doc["dados"], autorias_doc["dados"])
     ranking = _agregar(parlamentares_doc["dados"], despesas_doc["dados"], frequencias, projetos)
+    for item in ranking:
+        item.update(_resumo_eleicao(eleicoes.get(item["id"])))
 
     pasta = PASTAS_POR_CASA[casa]
     _escrever_json(
@@ -187,6 +211,7 @@ def _construir_casa(casa: str, *, ano: int, data_dir: Path, data_output: Path) -
             "atualizado_em": despesas_doc["coletado_em"],
             "fonte": despesas_doc["url_origem"],
             "total_gasto": round(sum(item["total_gasto"] for item in ranking), 2),
+            "eleicoes_anos": eleicoes_doc.get("anos", []),
             "parlamentares": ranking,
         },
     )
@@ -221,6 +246,11 @@ def _construir_casa(casa: str, *, ano: int, data_dir: Path, data_output: Path) -
                 "fonte": comparecimentos_doc["url_origem"],
                 "frequencia": frequencias.get(parlamentar_id, {"sessoes": []}),
             },
+            "eleicao.json": {
+                **base,
+                "fonte": eleicoes_doc.get("fonte"),
+                "eleicao": eleicoes.get(parlamentar_id),
+            },
             "despesas.json": {
                 **base,
                 "despesas": sorted(
@@ -244,7 +274,12 @@ def _versionar_arquivos(output_dir: Path) -> None:
 
 
 def construir_site(
-    *, ano: int, data_dir: Path, output_dir: Path, casas: tuple[str, ...] = ("camara", "senado")
+    *,
+    ano: int,
+    data_dir: Path,
+    output_dir: Path,
+    eleicoes_dir: Path = Path("eleicoes"),
+    casas: tuple[str, ...] = ("camara", "senado"),
 ) -> Path:
     source_dir = Path(__file__).parents[2] / "web"
     if output_dir.exists():
@@ -254,5 +289,5 @@ def construir_site(
     data_output = output_dir / "data"
     data_output.mkdir()
     for casa in casas:
-        _construir_casa(casa, ano=ano, data_dir=data_dir, data_output=data_output)
+        _construir_casa(casa, ano=ano, data_dir=data_dir, eleicoes_dir=eleicoes_dir, data_output=data_output)
     return output_dir / "index.html"

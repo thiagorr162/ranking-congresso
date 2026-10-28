@@ -29,12 +29,14 @@
           </div>
         </div>
 
-        <div class="detail-grid">
+        <div class="detail-grid profile-summary">
           <article class="metric-card"><span>Gasto no ano</span><strong id="total"></strong><small id="quantidade"></small><p id="comparacao-gasto" class="comparison" hidden></p></article>
           <article class="metric-card"><span>Maior despesa</span><strong id="maior"></strong><small id="maior-fornecedor"></small><p id="comparacao-maior-despesa" class="comparison" hidden></p></article>
           <article class="metric-card"><span>Principal fornecedor</span><strong id="concentracao"></strong><small id="fornecedor"></small></article>
           <article class="metric-card"><span data-rotulo-falta>Não compareceu</span><strong id="faltas"></strong><small id="presenca"></small></article>
           <article class="metric-card"><span>Projetos no ano</span><strong id="projetos"></strong><small id="projetos-mes"></small></article>
+          <article class="metric-card"><span id="campanha-rotulo">Campanha</span><strong id="campanha-custo"></strong><small id="campanha-detalhe"></small><p id="comparacao-campanha" class="comparison" hidden></p></article>
+          <article class="metric-card"><span>Preço do voto</span><strong id="preco-voto"></strong><small id="preco-voto-detalhe"></small></article>
         </div>
 
         <section class="detail-section">
@@ -76,6 +78,25 @@
               <p class="chart-hint">Passe o cursor ou toque nos pontos para ver os detalhes.</p>
               <div id="grafico-serie-temporal" class="timeline-chart" aria-label="Série temporal dos gastos mensais"></div>
             </article>
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2 id="eleicao-titulo">Eleição</h2>
+          <p id="eleicao-nota" class="section-note"></p>
+          <div id="eleicao-dados" hidden>
+            <div class="detail-grid">
+              <article class="metric-card"><span>Custo da campanha</span><strong id="eleicao-custo"></strong><small id="eleicao-receitas"></small></article>
+              <article class="metric-card"><span>Dinheiro público</span><strong id="eleicao-publico"></strong><small id="eleicao-publico-pct"></small></article>
+              <article class="metric-card"><span>Votos</span><strong id="eleicao-votos"></strong><small id="eleicao-situacao"></small></article>
+              <article class="metric-card"><span>Custo por voto</span><strong id="eleicao-custo-voto"></strong><small>despesas ÷ votos</small></article>
+            </div>
+            <article class="chart-card election-sources">
+              <h3>De onde veio o dinheiro</h3>
+              <div id="eleicao-origens" class="bar-chart"></div>
+            </article>
+            <p id="eleicao-patrimonio" class="section-note election-assets"></p>
+            <p id="eleicao-repasses" class="section-note election-assets"></p>
+            <a id="ver-eleicao" class="official-link">Ver receitas e despesas da campanha →</a>
           </div>
         </section>
         <section class="detail-section frequency-callout">

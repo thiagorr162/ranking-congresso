@@ -64,7 +64,7 @@ h1 { margin: 8px 0; font-size: clamp(38px, 6vw, 68px); line-height: 1; letter-sp
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
@@ -147,6 +147,8 @@ h2 { margin: 0; font-size: 30px; }
 .comparison a { color: var(--green); text-decoration: none; }
 .comparison a:hover { text-decoration: underline; }
 .summary .comparison strong, .metric-card .comparison strong, .comparison strong { display: inline; margin: 0; font-size: inherit; }
+.election-sources { margin-top: 12px; }
+.section-note.election-assets { margin: 16px 0 4px; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .since { font-size: 14px; }
 .since small { display: block; margin-top: 4px; color: var(--muted); }
@@ -169,6 +171,7 @@ footer { display: flex; justify-content: space-between; padding: 24px 5vw; backg
 .profile-meta { color: var(--muted); font-size: 18px; }
 .official-link { display: inline-block; margin-top: 12px; color: var(--green); font-weight: 700; }
 .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.profile-summary { grid-template-columns: repeat(4, 1fr); }
 .metric-card { min-height: 125px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
 .metric-card span, .metric-card small { display: block; color: var(--muted); font-size: 12px; }
 .metric-card strong { display: block; margin-top: 9px; font-size: 22px; }

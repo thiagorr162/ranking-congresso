@@ -27,9 +27,14 @@
 
       <section class="summary" aria-label="Resumo">
         <article>
-          <span>Total no ano</span>
+          <span>Gasto com a cota no ano</span>
           <strong id="total-gasto">—</strong>
           <p id="comparacao-total" class="comparison" hidden></p>
+        </article>
+        <article>
+          <span id="campanhas-rotulo">Gasto nas campanhas</span>
+          <strong id="total-campanhas">—</strong>
+          <p id="comparacao-campanhas" class="comparison" hidden></p>
         </article>
         <article>
           <span>Dados atualizados</span>
@@ -66,6 +71,8 @@
 
         <div class="filters" role="group" aria-label="Critério do ranking">
           <button class="selected" data-sort="total_gasto">Mais gastou</button>
+          <button data-sort="campanha">Campanha mais cara</button>
+          <button data-sort="voto_caro">Voto mais caro</button>
           <button data-sort="maior_despesa">Maior despesa</button>
           <button data-sort="faltas">Mais faltou</button>
           <button data-sort="projetos">Menos projetos</button>

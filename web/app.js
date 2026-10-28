@@ -3,6 +3,9 @@ const state = { data: null, sort: "total_gasto", query: "" };
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const date = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`;
+const number = new Intl.NumberFormat("pt-BR");
+const costPerVote = (senador) => senador.campanha_custo !== null && senador.campanha_votos ? senador.campanha_custo / senador.campanha_votos : null;
+const publicShare = (senador) => senador.campanha_receitas ? Math.round(senador.campanha_publico / senador.campanha_receitas * 100) : 0;
 
 const criteria = {
   total_gasto: {
@@ -15,6 +18,29 @@ const criteria = {
     categoryDetail: (senador) => senador.categoria_principal ? money.format(senador.categoria_principal_valor) : "",
     page: "despesas.html",
     compare: (a, b) => b.total_gasto - a.total_gasto,
+  },
+  campanha: {
+    label: "Campanha mais cara",
+    column: "Custo da campanha",
+    amount: (senador) => senador.campanha_custo,
+    description: "Despesas declaradas ao TSE na campanha que elegeu cada parlamentar. Suplentes de senador não fazem campanha própria.",
+    value: (senador) => senador.campanha_custo === null ? "Sem dados" : money.format(senador.campanha_custo),
+    detail: (senador) => senador.campanha_custo === null ? "" : `${publicShare(senador)}% de dinheiro público`,
+    category: (senador) => senador.campanha_ano ? `Eleição de ${senador.campanha_ano}` : "Sem campanha própria",
+    categoryDetail: (senador) => senador.campanha_votos ? `${number.format(senador.campanha_votos)} votos` : "",
+    page: "eleicao.html",
+    compare: (a, b) => (b.campanha_custo ?? -1) - (a.campanha_custo ?? -1),
+  },
+  voto_caro: {
+    label: "Voto mais caro",
+    column: "Custo por voto",
+    description: "Custo da campanha dividido pelos votos recebidos. Suplentes de senador não fazem campanha própria.",
+    value: (senador) => costPerVote(senador) === null ? "Sem dados" : money.format(costPerVote(senador)),
+    detail: (senador) => senador.campanha_votos ? `${number.format(senador.campanha_votos)} votos` : "",
+    category: (senador) => senador.campanha_ano ? `Eleição de ${senador.campanha_ano}` : "Sem campanha própria",
+    categoryDetail: (senador) => senador.campanha_custo === null ? "" : `Campanha de ${money.format(senador.campanha_custo)}`,
+    page: "eleicao.html",
+    compare: (a, b) => (costPerVote(b) ?? -1) - (costPerVote(a) ?? -1),
   },
   maior_despesa: {
     label: "Maior despesa",
@@ -84,6 +110,7 @@ function render() {
     .filter(({ senador }) => `${senador.nome} ${senador.partido} ${senador.uf}`.toLocaleLowerCase("pt-BR").includes(query));
 
   document.querySelector("#criterio-explicacao").textContent = criterion.description;
+  document.querySelector("#coluna-valor").textContent = criterion.column || `Valor em ${state.data.ano}`;
   document.querySelector("#ranking").innerHTML = senators.map(({ senador, position }) => `
     <li class="rank-item${position <= 3 ? " rank-top" : ""}" value="${position}">
       <span class="position">${position}<small>/${state.data.parlamentares.length}</small></span>
@@ -122,7 +149,11 @@ async function load() {
     state.data = await response.json();
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
     startComparisons(document.querySelector("#comparacao-total"), state.data.total_gasto);
-    document.querySelector("#coluna-valor").textContent = `Valor em ${state.data.ano}`;
+    const campaigns = state.data.parlamentares.reduce((sum, item) => sum + (item.campanha_custo || 0), 0);
+    const years = state.data.eleicoes_anos || [];
+    if (years.length) document.querySelector("#campanhas-rotulo").textContent = `Gasto nas campanhas de ${years.join(" e ")}`;
+    document.querySelector("#total-campanhas").textContent = campaigns ? money.format(campaigns) : "—";
+    startComparisons(document.querySelector("#comparacao-campanhas"), campaigns);
     document.querySelector("#atualizado").textContent = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" })
       .format(new Date(state.data.atualizado_em));
     document.querySelector("#fonte").href = state.data.fonte;

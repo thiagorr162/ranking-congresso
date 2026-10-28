@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Receitas e despesas da campanha eleitoral de um parlamentar." />
+    <title>Campanha — Ranking do Congresso</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="casa.js" defer></script>
+    <script src="eleicao.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brand-mark">RC</span><span>Ranking do Congresso</span></a>
+    </header>
+    <main>
+      <a id="voltar" class="back-link" href="./">← Voltar</a>
+      <section id="conteudo" hidden>
+        <div class="page-heading">
+          <p class="eyebrow">CAMPANHA</p>
+          <h1 id="nome"></h1>
+          <p id="descricao"></p>
+        </div>
+        <div class="detail-grid">
+          <article class="metric-card"><span>Arrecadado</span><strong id="receitas"></strong></article>
+          <article class="metric-card"><span>Dinheiro público</span><strong id="publico"></strong><small id="publico-pct"></small></article>
+          <article class="metric-card"><span>Gasto</span><strong id="despesas"></strong><small id="repasses"></small></article>
+          <article class="metric-card"><span>Votos</span><strong id="votos"></strong><small id="custo-voto"></small></article>
+        </div>
+        <section class="detail-section">
+          <h2>De onde veio o dinheiro</h2>
+          <div class="table-wrap">
+            <table class="expenses-table">
+              <thead><tr><th>Fonte</th><th>Valor</th></tr></thead>
+              <tbody id="origens"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2>Maiores doadores</h2>
+          <p class="section-note">Inclui repasses de partidos, que em geral vêm dos fundos públicos. Até 50 maiores.</p>
+          <div class="table-wrap">
+            <table class="expenses-table">
+              <thead><tr><th>Doador</th><th>Valor</th></tr></thead>
+              <tbody id="doadores"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2>Com o que gastou</h2>
+          <div class="table-wrap">
+            <table class="expenses-table">
+              <thead><tr><th>Tipo de despesa</th><th>Valor</th></tr></thead>
+              <tbody id="tipos"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="detail-section">
+          <h2>Maiores fornecedores</h2>
+          <p class="section-note">Até 50 maiores. O CNPJ aparece só para empresas.</p>
+          <div class="table-wrap">
+            <table class="expenses-table">
+              <thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Valor</th></tr></thead>
+              <tbody id="fornecedores"></tbody>
+            </table>
+          </div>
+          <a id="fonte" class="official-link" href="https://divulgacandcontas.tse.jus.br/" target="_blank" rel="noreferrer">Conferir no TSE ↗</a>
+        </section>
+      </section>
+      <p id="sem-dados" class="error" hidden>Não há dados de campanha para este parlamentar.</p>
+      <p id="erro" class="error" hidden>Não foi possível carregar os dados da campanha.</p>
+    </main>
+  </body>
+</html>
