@@ -62,4 +62,4 @@ uv run pytest
 
 ## Publicação
 
-O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages toda segunda-feira, além de poder ser disparado manualmente.
+O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages todo dia, além de poder ser disparado manualmente.
