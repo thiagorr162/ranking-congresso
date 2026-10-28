@@ -15,11 +15,12 @@ async function startComparisons(target, amount) {
   if (!target || !(amount > 0)) return;
   let items;
   try {
-    items = await loadComparisons();
+    items = (await loadComparisons()).filter((item) => amount >= item.valor);
   } catch (error) {
     console.error(error);
     return;
   }
+  if (!items.length) return;
 
   const link = document.createElement("a");
   link.target = "_blank";

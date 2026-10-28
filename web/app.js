@@ -102,7 +102,14 @@ async function load() {
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
     startComparisons(document.querySelector("#comparacao-total"), state.data.total_gasto);
     document.querySelector("#maior-nome").textContent = top?.nome || "—";
+    if (top) {
+      document.querySelector("#maior-nome").href = pageUrl("perfil.html", { id: top.id });
+      const photo = document.querySelector("#maior-foto");
+      photo.src = top.foto;
+      photo.hidden = !top.foto;
+    }
     document.querySelector("#maior-valor").textContent = top ? money.format(top.total_gasto) : "";
+    startComparisons(document.querySelector("#comparacao-maior"), top?.total_gasto);
     document.querySelector("#atualizado").textContent = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" })
       .format(new Date(state.data.atualizado_em));
     document.querySelector("#fonte").href = state.data.fonte;

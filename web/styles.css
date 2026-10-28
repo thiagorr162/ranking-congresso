@@ -78,6 +78,11 @@ h1 { margin: 8px 0; font-size: clamp(38px, 6vw, 68px); line-height: 1; letter-sp
 .summary span, .summary small { display: block; color: var(--muted); font-size: 13px; }
 .summary strong { display: block; margin-top: 8px; font-size: clamp(20px, 3vw, 29px); }
 .summary small { margin-top: 3px; }
+.summary-person { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.summary-person img { width: 52px; height: 52px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; background: #dde3dd; }
+.summary-person strong { margin-top: 0; }
+.summary-person a { text-decoration: none; }
+.summary-person a:hover { text-decoration: underline; }
 
 .ranking-section { padding: 52px 0 72px; }
 .ranking-head { display: flex; align-items: end; justify-content: space-between; gap: 30px; }
@@ -139,6 +144,8 @@ h2 { margin: 0; font-size: 30px; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .since { font-size: 14px; }
 .since small { display: block; margin-top: 4px; color: var(--muted); }
+.profile-contact { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.profile-contact a { color: var(--green); }
 .profile-since { margin-top: 4px; color: var(--muted); font-size: 14px; }
 .section-note { margin: -8px 0 16px; color: var(--muted); font-size: 14px; }
 .project-list { display: grid; gap: 10px; margin: 0 0 6px; padding: 0; list-style: none; }

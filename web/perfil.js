@@ -174,10 +174,17 @@ async function load() {
       document.querySelector("#exercicio").textContent = `${person.participacao || "No cargo"} · atuando desde ${since}`;
     }
     document.querySelector("#perfil-oficial").href = person.url_perfil;
+    if (person.email) {
+      const email = document.querySelector("#email-link");
+      email.href = `mailto:${person.email}`;
+      email.textContent = person.email;
+      document.querySelector("#email").hidden = false;
+    }
     document.querySelector("#total").textContent = money.format(summary.total_gasto);
     startComparisons(document.querySelector("#comparacao-gasto"), summary.total_gasto);
     document.querySelector("#quantidade").textContent = `${summary.quantidade_despesas} despesas`;
     document.querySelector("#maior").textContent = money.format(summary.maior_despesa);
+    startComparisons(document.querySelector("#comparacao-maior-despesa"), summary.maior_despesa);
     document.querySelector("#maior-fornecedor").textContent = summary.maior_despesa_fornecedor || "Sem despesas";
     document.querySelector("#concentracao").textContent = `${summary.concentracao_fornecedor}%`;
     document.querySelector("#fornecedor").textContent = summary.fornecedor_principal || "Sem despesas";
