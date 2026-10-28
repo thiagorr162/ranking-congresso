@@ -1,4 +1,4 @@
-from deputados.build import _agregar_frequencia, _agregar_projetos
+from deputados.build import _agregar_frequencia, _agregar_projetos, _versionar_arquivos
 
 
 def test_falta_conta_uma_vez_por_sessao() -> None:
@@ -63,3 +63,18 @@ def test_projetos_contam_so_proposicoes_e_sem_duplicar() -> None:
     assert resultado["1"]["projetos_tramitando"] == 1
     assert resultado["1"]["autorias"] == 3
     assert resultado["2"]["projetos"] == 0
+
+
+def test_versiona_scripts_e_estilos(tmp_path) -> None:
+    (tmp_path / "app.js").write_text("console.log(1)")
+    (tmp_path / "styles.css").write_text("body{}")
+    (tmp_path / "index.html").write_text(
+        '<link href="styles.css" /><script src="app.js"></script><a href="perfil.html">x</a>'
+    )
+
+    _versionar_arquivos(tmp_path)
+    html = (tmp_path / "index.html").read_text()
+
+    assert 'href="styles.css?v=' in html
+    assert 'src="app.js?v=' in html
+    assert 'href="perfil.html"' in html

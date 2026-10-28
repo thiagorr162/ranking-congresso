@@ -1,4 +1,6 @@
+import hashlib
 import json
+import re
 import shutil
 from collections import defaultdict
 from pathlib import Path
@@ -7,8 +9,13 @@ from typing import Any
 PASTAS_POR_CASA = {"camara": "deputados", "senado": "senadores"}
 PRESENT_STATUSES = {"Sim", "Não", "Abstenção", "Votou", "P-NRV", "Presidente (art. 51 RISF)", "Presente"}
 ABSENT_STATUSES = {"NCom", "Ausente"}
-VOTE_STATUSES = {"Sim", "Não", "Abstenção", "Votou"}
 JUSTIFIED_STATUSES = {"AP", "LS", "MIS", "LP", "LAP"}
+CLASSIFICACOES = (
+    (PRESENT_STATUSES, "presenca", "presencas"),
+    (ABSENT_STATUSES, "falta", "faltas"),
+    (JUSTIFIED_STATUSES, "justificada", "justificadas"),
+)
+FREQUENCIA_VAZIA = {"presencas": 0, "faltas": 0, "justificadas": 0, "total_sessoes": 0, "percentual_presenca": 0}
 TIPOS_PROJETO = {
     "Projeto de Lei Ordinária",
     "Projeto de Lei Complementar",
@@ -43,33 +50,17 @@ def _agregar_frequencia(registros: list[dict[str, Any]]) -> dict[str, dict[str, 
 
     resultado = {}
     for parlamentar_id, sessoes in por_parlamentar.items():
-        registros_parlamentar = [registro for votos in sessoes.values() for registro in votos]
         detalhes = []
-        totais = {
-            "presencas": 0,
-            "faltas": 0,
-            "justificadas": 0,
-            "nao_classificadas": 0,
-            "votos_registrados": sum(item["status"] in VOTE_STATUSES for item in registros_parlamentar),
-            "votacoes_total": len(registros_parlamentar),
-            "presente_sem_voto": sum(item["status"] == "P-NRV" for item in registros_parlamentar),
-        }
+        totais = {"presencas": 0, "faltas": 0, "justificadas": 0}
         for sessao_id, votos in sessoes.items():
             statuses = {voto["status"] for voto in votos}
-            if statuses & PRESENT_STATUSES:
-                classificacao = "presenca"
-                totais["presencas"] += 1
-            elif statuses & ABSENT_STATUSES:
-                classificacao = "falta"
-                totais["faltas"] += 1
-            elif statuses & JUSTIFIED_STATUSES:
-                classificacao = "justificada"
-                totais["justificadas"] += 1
-            else:
-                classificacao = "nao_classificada"
-                totais["nao_classificadas"] += 1
+            classificacao, status = "nao_classificada", min(statuses)
+            for conjunto, nome, chave in CLASSIFICACOES:
+                if statuses & conjunto:
+                    classificacao, status = nome, min(statuses & conjunto)
+                    totais[chave] += 1
+                    break
 
-            status = next(iter(statuses))
             descricao = next((voto.get("status_descricao") for voto in votos if voto.get("status_descricao")), None)
             detalhes.append(
                 {
@@ -141,21 +132,7 @@ def _agregar(
 
         fornecedor, valor_fornecedor = max(por_fornecedor.items(), key=lambda item: item[1], default=(None, 0.0))
         categoria, valor_categoria = max(por_categoria.items(), key=lambda item: item[1], default=(None, 0.0))
-        frequencia = frequencias.get(
-            parlamentar["id_fonte"],
-            {
-                "presencas": 0,
-                "faltas": 0,
-                "justificadas": 0,
-                "nao_classificadas": 0,
-                "total_sessoes": 0,
-                "percentual_presenca": 0,
-                "votos_registrados": 0,
-                "votacoes_total": 0,
-                "presente_sem_voto": 0,
-                "sessoes": [],
-            },
-        )
+        frequencia = frequencias.get(parlamentar["id_fonte"], FREQUENCIA_VAZIA)
         ranking.append(
             {
                 "id": parlamentar["id_fonte"],
@@ -163,11 +140,11 @@ def _agregar(
                 "partido": parlamentar["partido"],
                 "uf": parlamentar["uf"],
                 "foto": parlamentar["url_foto"],
-                "perfil_oficial": parlamentar["url_perfil"],
                 "email": parlamentar.get("email"),
                 "total_gasto": round(total, 2),
                 "quantidade_despesas": len(registros),
                 "maior_despesa": round(maior["valor"], 2) if maior else 0,
+                "maior_despesa_id": maior["id_fonte"] if maior else None,
                 "maior_despesa_fornecedor": maior["fornecedor"] if maior else None,
                 "maior_despesa_tipo": maior["tipo"] if maior else None,
                 "fornecedor_principal": fornecedor,
@@ -180,9 +157,6 @@ def _agregar(
                 "faltas_justificadas": frequencia["justificadas"],
                 "total_sessoes": frequencia["total_sessoes"],
                 "percentual_presenca": frequencia["percentual_presenca"],
-                "votos_registrados": frequencia["votos_registrados"],
-                "votacoes_total": frequencia["votacoes_total"],
-                "presente_sem_voto": frequencia["presente_sem_voto"],
                 "participacao": parlamentar.get("participacao"),
                 "exercicio_inicio": parlamentar.get("exercicio_inicio"),
                 **{chave: valor for chave, valor in projetos[parlamentar["id_fonte"]].items() if chave != "lista"},
@@ -212,9 +186,7 @@ def _construir_casa(casa: str, *, ano: int, data_dir: Path, data_output: Path) -
             "ano": ano,
             "atualizado_em": despesas_doc["coletado_em"],
             "fonte": despesas_doc["url_origem"],
-            "total_parlamentares": len(ranking),
             "total_gasto": round(sum(item["total_gasto"] for item in ranking), 2),
-            "projetos_fonte": autorias_doc["url_origem"],
             "parlamentares": ranking,
         },
     )
@@ -262,6 +234,15 @@ def _construir_casa(casa: str, *, ano: int, data_dir: Path, data_output: Path) -
             _escrever_json(pasta_parlamentar / nome, conteudo)
 
 
+def _versionar_arquivos(output_dir: Path) -> None:
+    """Acrescenta ?v=<hash> a scripts e estilos para o navegador não misturar versões em cache."""
+    conteudo = b"".join(arquivo.read_bytes() for arquivo in sorted(output_dir.glob("*.[jc]s*")))
+    versao = hashlib.sha256(conteudo).hexdigest()[:10]
+    for pagina in output_dir.glob("*.html"):
+        html = re.sub(r'((?:src|href)="[\w-]+\.(?:js|css))"', rf'\1?v={versao}"', pagina.read_text(encoding="utf-8"))
+        pagina.write_text(html, encoding="utf-8")
+
+
 def construir_site(
     *, ano: int, data_dir: Path, output_dir: Path, casas: tuple[str, ...] = ("camara", "senado")
 ) -> Path:
@@ -269,6 +250,7 @@ def construir_site(
     if output_dir.exists():
         shutil.rmtree(output_dir)
     shutil.copytree(source_dir, output_dir)
+    _versionar_arquivos(output_dir)
     data_output = output_dir / "data"
     data_output.mkdir()
     for casa in casas:

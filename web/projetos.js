@@ -3,14 +3,8 @@ const senatorId = params.get("id");
 const date = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const state = { data: null, filter: "todos" };
 
-function escapeHtml(value) {
-  return String(value ?? "Não informado")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+
+const escapeText = (value) => escapeHtml(value ?? "Não informado");
 
 function formatDate(value) {
   return value ? date.format(new Date(`${value.slice(0, 10)}T00:00:00Z`)) : "—";
@@ -25,11 +19,11 @@ function render() {
     <tr>
       <td>${formatDate(project.data)}</td>
       <td>
-        <a class="expense-link" href="${escapeHtml(project.url_documento)}" target="_blank" rel="noreferrer">${escapeHtml(project.identificacao)}</a>
-        <span class="cell-detail">${escapeHtml(project.tipo)}</span>
+        <a class="expense-link" href="${escapeText(project.url_documento)}" target="_blank" rel="noreferrer">${escapeText(project.identificacao)}</a>
+        <span class="cell-detail">${escapeText(project.tipo)}</span>
       </td>
-      <td>${escapeHtml(project.ementa)}</td>
-      <td>${escapeHtml(project.situacao)}<span class="cell-detail">${project.tramitando ? "Em tramitação" : "Encerrado"}</span></td>
+      <td>${escapeText(project.ementa)}</td>
+      <td>${escapeText(project.situacao)}<span class="cell-detail">${project.tramitando ? "Em tramitação" : "Encerrado"}</span></td>
     </tr>
   `).join("");
 }

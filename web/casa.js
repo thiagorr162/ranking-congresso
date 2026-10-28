@@ -33,6 +33,15 @@ const casaParam = new URLSearchParams(window.location.search).get("casa");
 const CASA_ID = casaParam in CASAS ? casaParam : "camara";
 const CASA = CASAS[CASA_ID];
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function pageUrl(page, params = {}) {
   return `${page}?${new URLSearchParams({ casa: CASA_ID, ...params })}`;
 }

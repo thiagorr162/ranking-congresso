@@ -1,4 +1,4 @@
-# Saiu do Seu Bolso
+# Ranking do Congresso
 
 Dados oficiais de deputados e senadores apresentados em linguagem simples. O projeto começa pelas APIs da Câmara dos Deputados e do Senado Federal, sem scraping de HTML.
 

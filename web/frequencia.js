@@ -1,16 +1,10 @@
 const params = new URLSearchParams(window.location.search);
 const senatorId = params.get("id");
 const date = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
-const state = { data: null, filter: params.get("criterio") === "faltas" ? "falta" : "falta" };
+const state = { data: null, filter: "falta" };
 
-function escapeHtml(value) {
-  return String(value ?? "Não informado")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+
+const escapeText = (value) => escapeHtml(value ?? "Não informado");
 
 function render() {
   const sessions = state.data.frequencia.sessoes.filter((session) =>
@@ -20,8 +14,8 @@ function render() {
   document.querySelector("#sessoes").innerHTML = sessions.map((session) => `
     <tr>
       <td>${date.format(new Date(`${session.data}T00:00:00Z`))}</td>
-      <td><span class="status status-${escapeHtml(session.classificacao)}">${session.classificacao === "falta" ? (CASA.temJustificativas ? "Não compareceu" : "Sem presença") : session.classificacao === "justificada" ? "Justificada" : "Presença"}</span></td>
-      <td>${escapeHtml(CASA.temJustificativas ? session.motivo : session.descricao)}</td>
+      <td><span class="status status-${escapeText(session.classificacao)}">${session.classificacao === "falta" ? (CASA.temJustificativas ? "Não compareceu" : "Sem presença") : session.classificacao === "justificada" ? "Justificada" : "Presença"}</span></td>
+      <td>${escapeText(CASA.temJustificativas ? session.motivo : session.descricao)}</td>
       ${CASA.temJustificativas ? `<td>${session.votacoes}</td>` : ""}
     </tr>
   `).join("");

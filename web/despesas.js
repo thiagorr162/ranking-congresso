@@ -6,14 +6,8 @@ const criterion = params.get("criterio") || "total_gasto";
 const state = { expenses: [], ordering: "data_desc" };
 const collator = new Intl.Collator("pt-BR", { sensitivity: "base" });
 
-function escapeHtml(value) {
-  return String(value ?? "Não informado")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+
+const escapeText = (value) => escapeHtml(value ?? "Não informado");
 
 function selectExpenses(data) {
   if (criterion === "maior_despesa") {
@@ -51,9 +45,9 @@ function renderExpenses() {
   document.querySelector("#despesas").innerHTML = orderedExpenses().map((expense) => `
     <tr>
       <td>${expense.data ? date.format(new Date(`${expense.data}T00:00:00Z`)) : "Não informada"}</td>
-      <td><a class="expense-link" href="${pageUrl("despesa.html", { id: senatorId, despesa: expense.id_fonte })}">${escapeHtml(expense.tipo)}</a>${expense.detalhamento ? `<small class="cell-detail">${escapeHtml(expense.detalhamento)}</small>` : '<small class="cell-detail">Sem detalhamento adicional</small>'}</td>
-      <td>${escapeHtml(expense.fornecedor)}<small class="cell-detail">${escapeHtml(expense.cpf_cnpj)}</small></td>
-      <td>${expense.url_documento ? `<a class="expense-link" href="${escapeHtml(expense.url_documento)}" target="_blank" rel="noreferrer">${escapeHtml(expense.tipo_documento)} ↗</a>` : escapeHtml(expense.tipo_documento)}<small class="cell-detail">Nº ${escapeHtml(expense.documento)}</small></td>
+      <td><a class="expense-link" href="${pageUrl("despesa.html", { id: senatorId, despesa: expense.id_fonte })}">${escapeText(expense.tipo)}</a>${expense.detalhamento ? `<small class="cell-detail">${escapeText(expense.detalhamento)}</small>` : '<small class="cell-detail">Sem detalhamento adicional</small>'}</td>
+      <td>${escapeText(expense.fornecedor)}<small class="cell-detail">${escapeText(expense.cpf_cnpj)}</small></td>
+      <td>${expense.url_documento ? `<a class="expense-link" href="${escapeText(expense.url_documento)}" target="_blank" rel="noreferrer">${escapeText(expense.tipo_documento)} ↗</a>` : escapeText(expense.tipo_documento)}<small class="cell-detail">Nº ${escapeText(expense.documento)}</small></td>
       <td><strong>${money.format(expense.valor)}</strong></td>
     </tr>
   `).join("");

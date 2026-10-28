@@ -35,7 +35,7 @@ class JsonClient:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": "saiu-do-seu-bolso/0.1 (+projeto de transparencia publica)",
+                "User-Agent": "ranking-do-congresso/0.1 (+projeto de transparencia publica)",
             },
         )
 

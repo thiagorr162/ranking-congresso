@@ -5,7 +5,7 @@ description = "Dados parlamentares oficiais em linguagem simples."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "Projeto Saiu do Seu Bolso" }]
+authors = [{ name = "Projeto Ranking do Congresso" }]
 dependencies = [
     "tqdm>=4.67.0",
 ]

@@ -8,7 +8,7 @@ function renderBars(target, items, formatter = money.format) {
   target.innerHTML = items.length ? items.map((item) => {
     const width = maximum ? Math.max((item.value / maximum) * 100, 2) : 0;
     return `<div class="bar-row">
-      <div class="bar-label"><span title="${item.label}">${item.label}</span><strong>${formatter(item.value)}</strong></div>
+      <div class="bar-label"><span title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span><strong>${formatter(item.value)}</strong></div>
       <div class="bar-track"><span style="width: ${width}%"></span></div>
     </div>`;
   }).join("") : '<p class="empty-chart">Sem dados no período.</p>';
@@ -141,14 +141,6 @@ function renderProjects(projects) {
     </li>`).join("") : '<li class="empty-chart">Nenhum projeto apresentado no período.</li>';
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 async function load() {
   if (!senatorId) return showError();
@@ -163,7 +155,7 @@ async function load() {
     const [data, expensesData, projectsData] = await Promise.all(responses.map((response) => response.json()));
     const person = data.parlamentar;
     const summary = data.resumo;
-    document.title = `${person.nome} — Saiu do Seu Bolso`;
+    document.title = `${person.nome} — Ranking do Congresso`;
     document.querySelector("#foto").src = person.url_foto;
     document.querySelector("#nome").textContent = person.nome;
     document.querySelector("#rotulo").textContent = CASA.rotulo;
@@ -201,9 +193,7 @@ async function load() {
     document.querySelector("#ver-todas").href = pageUrl("despesas.html", { id: senatorId, criterio: "total_gasto" });
     document.querySelector("#ver-fornecedor").href = pageUrl("despesas.html", { id: senatorId, criterio: "concentracao_fornecedor" });
     document.querySelector("#ver-frequencia").href = pageUrl("frequencia.html", { id: senatorId });
-    const biggest = expensesData.despesas.find((item) =>
-      item.valor === summary.maior_despesa && item.fornecedor === summary.maior_despesa_fornecedor
-    );
+    const biggest = expensesData.despesas.find((item) => item.id_fonte === summary.maior_despesa_id);
     document.querySelector("#maior-fato").textContent = biggest ? biggest.fornecedor || biggest.tipo : "Sem despesas";
     document.querySelector("#maior-valor-fato").textContent = biggest ? `${money.format(biggest.valor)} · ${biggest.tipo}` : "";
     if (biggest) {

@@ -49,14 +49,6 @@ const criteria = {
   },
 };
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 function renderTop(criterion) {
   const top = [...state.data.parlamentares].sort(criterion.compare)[0];
@@ -87,15 +79,14 @@ function render() {
   const criterion = criteria[state.sort];
   const query = state.query.trim().toLocaleLowerCase("pt-BR");
   const senators = [...state.data.parlamentares]
-    .filter((item) => `${item.nome} ${item.partido} ${item.uf}`.toLocaleLowerCase("pt-BR").includes(query))
-    .sort(criterion.compare);
+    .sort(criterion.compare)
+    .map((senador, index) => ({ senador, position: index + 1 }))
+    .filter(({ senador }) => `${senador.nome} ${senador.partido} ${senador.uf}`.toLocaleLowerCase("pt-BR").includes(query));
 
   document.querySelector("#criterio-explicacao").textContent = criterion.description;
-  const detailParameter = criterion.parameter || "criterio";
-  const detailTarget = criterion.target || state.sort;
-  document.querySelector("#ranking").innerHTML = senators.map((senador, index) => `
-    <li class="rank-item">
-      <span class="position">${index + 1}</span>
+  document.querySelector("#ranking").innerHTML = senators.map(({ senador, position }) => `
+    <li class="rank-item${position <= 3 ? " rank-top" : ""}" value="${position}">
+      <span class="position">${position}<small>/${state.data.parlamentares.length}</small></span>
       <div class="person">
         <img src="${escapeHtml(senador.foto)}" alt="" loading="lazy" />
         <div>
@@ -108,7 +99,7 @@ function render() {
         <small>${escapeHtml(senador.participacao || "")}</small>
       </div>
       <div class="category">
-        <a href="${pageUrl(criterion.page, { id: senador.id, [detailParameter]: detailTarget })}">${escapeHtml(criterion.category(senador))}</a>
+        <a href="${pageUrl(criterion.page, { id: senador.id, criterio: state.sort })}">${escapeHtml(criterion.category(senador))}</a>
         <small>${escapeHtml(criterion.categoryDetail(senador))}</small>
       </div>
       <div class="value">
@@ -119,7 +110,7 @@ function render() {
   `).join("");
 }
 
-document.title = `Saiu do Seu Bolso — Ranking dos ${CASA.plural}`;
+document.title = `Ranking do Congresso — ${CASA.menu}`;
 document.querySelector("#titulo-ranking").textContent = `Ranking dos ${CASA.plural}`;
 document.querySelector("#coluna-nome").textContent = CASA.singular;
 document.querySelector("#fonte").href = CASA.dadosAbertos;
