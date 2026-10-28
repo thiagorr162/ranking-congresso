@@ -1,16 +1,18 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
+from dataclasses import replace
 from typing import Any
 
 from tqdm.auto import tqdm
 
 from deputados.http import JsonClient
-from deputados.models import Comparecimento, Despesa, Parlamentar
+from deputados.models import Autoria, Comparecimento, Despesa, Parlamentar
 
 BASE_URL = "https://legis.senado.leg.br/dadosabertos"
 SOURCE_URL = f"{BASE_URL}/senador/lista/atual"
 ADMIN_BASE_URL = "https://adm.senado.gov.br/adm-dadosabertos"
 EXPENSES_SOURCE_URL = f"{ADMIN_BASE_URL}/api/v1/senadores/despesas_ceaps"
 VOTES_SOURCE_URL = f"{BASE_URL}/votacao"
+AUTHORSHIP_SOURCE_URL = f"{BASE_URL}/processo"
 
 
 def _as_list(value: Any) -> list[Any]:
@@ -32,7 +34,28 @@ class SenadoSource:
         payload = self._get("senador/lista/atual")
         raiz = payload.get("ListaParlamentarEmExercicio", {})
         parlamentares = raiz.get("Parlamentares", {}).get("Parlamentar", [])
-        return [self._normalizar(item) for item in _as_list(parlamentares)]
+        resultado = []
+        for item in tqdm(_as_list(parlamentares), desc="Senadores", unit="senador", disable=None):
+            parlamentar = self._normalizar(item)
+            mandatos = self._get(f"senador/{parlamentar.id_fonte}/mandatos")
+            resultado.append(replace(parlamentar, exercicio_inicio=_exercicio_atual(mandatos)))
+        return resultado
+
+    def autorias(self, parlamentar_ids: Iterable[str], ano: int) -> list[Autoria]:
+        registros = []
+        for parlamentar_id in tqdm(list(parlamentar_ids), desc="Autorias do Senado", unit="senador", disable=None):
+            payload = self._get(
+                "processo",
+                {
+                    "codigoParlamentarAutor": parlamentar_id,
+                    "dataInicioApresentacao": f"{ano}-01-01",
+                    "dataFimApresentacao": f"{ano}-12-31",
+                },
+            )
+            if not isinstance(payload, list):
+                raise ValueError("Resposta inesperada do Senado: processos não são uma lista")
+            registros.extend(self._normalizar_autoria(parlamentar_id, item) for item in payload)
+        return registros
 
     def despesas(self, ano: int) -> list[Despesa]:
         payload = self._get_admin(f"api/v1/senadores/despesas_ceaps/{ano}")
@@ -112,6 +135,33 @@ class SenadoSource:
             detalhamento=item.get("detalhamento"),
             valor=float(item["valorReembolsado"]),
         )
+
+    @staticmethod
+    def _normalizar_autoria(parlamentar_id: str, item: dict[str, Any]) -> Autoria:
+        return Autoria(
+            parlamentar_id=parlamentar_id,
+            id_fonte=str(item["id"]),
+            identificacao=item["identificacao"],
+            tipo=item.get("tipoDocumento") or "Não informado",
+            ementa=item.get("ementa"),
+            data=item.get("dataApresentacao"),
+            situacao=item.get("situacaoAtual"),
+            tramitando=item.get("tramitando") in {"Sim", "S"},
+            autoria=item.get("autoria"),
+            url_documento=item.get("urlDocumento"),
+        )
+
+
+def _exercicio_atual(payload: dict[str, Any]) -> str | None:
+    parlamentar = payload.get("MandatoParlamentar", {}).get("Parlamentar", {})
+    exercicios = [
+        exercicio
+        for mandato in _as_list(parlamentar.get("Mandatos", {}).get("Mandato"))
+        for exercicio in _as_list((mandato.get("Exercicios") or {}).get("Exercicio"))
+        if exercicio.get("DataInicio")
+    ]
+    abertos = [exercicio for exercicio in exercicios if not exercicio.get("DataFim")]
+    return max((exercicio["DataInicio"] for exercicio in abertos or exercicios), default=None)
 
 
 def _https(url: str | None) -> str | None:

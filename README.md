@@ -21,7 +21,7 @@ uv run deputados coletar --casa senado
 
 Os arquivos são gravados em `data/raw/<casa>/parlamentares.json`. Cada arquivo informa a fonte, o instante da coleta e os registros em um formato comum.
 
-Ao coletar o Senado, o projeto também baixa as despesas da CEAPS do ano atual. Para informar outro ano:
+Ao coletar o Senado, o projeto também baixa, para o ano atual, as despesas da CEAPS, o comparecimento nas votações nominais e as autorias de cada senador, além da data em que cada um começou a atuar no mandato. No site, "projetos" conta só projetos de lei, PECs, projetos de decreto legislativo e de resolução; requerimentos e indicações entram apenas no total de autorias. Para informar outro ano:
 
 ```bash
 uv run deputados coletar --casa senado --ano 2025

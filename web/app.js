@@ -1,6 +1,8 @@
 const state = { data: null, sort: "total_gasto", query: "" };
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const date = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
+const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`;
 
 const criteria = {
   total_gasto: {
@@ -10,6 +12,7 @@ const criteria = {
     category: (senador) => senador.categoria_principal || "Sem despesas",
     categoryDetail: (senador) => senador.categoria_principal ? money.format(senador.categoria_principal_valor) : "",
     page: "despesas.html",
+    compare: (a, b) => b.total_gasto - a.total_gasto,
   },
   maior_despesa: {
     description: "Maior reembolso individual registrado no ano.",
@@ -18,6 +21,7 @@ const criteria = {
     category: (senador) => senador.maior_despesa_tipo || "Sem despesas",
     categoryDetail: () => "",
     page: "despesas.html",
+    compare: (a, b) => b.maior_despesa - a.maior_despesa,
   },
   faltas: {
     description: "Sessões em que o Senado registrou “Não compareceu”.",
@@ -26,6 +30,16 @@ const criteria = {
     category: (senador) => `${senador.faltas_justificadas} justificadas`,
     categoryDetail: (senador) => `${senador.presencas} sessões com presença`,
     page: "frequencia.html",
+    compare: (a, b) => b.faltas - a.faltas,
+  },
+  projetos: {
+    description: "Projetos de lei e PECs apresentados no ano, como autor ou coautor. Quem apresentou menos aparece primeiro.",
+    value: (senador) => plural(senador.projetos, "projeto", "projetos"),
+    detail: (senador) => `${senador.projetos_tramitando} em tramitação`,
+    category: () => "Ver projetos apresentados",
+    categoryDetail: (senador) => `${plural(senador.autorias, "autoria", "autorias")} no total, com requerimentos`,
+    page: "projetos.html",
+    compare: (a, b) => a.projetos - b.projetos || a.autorias - b.autorias,
   },
 };
 
@@ -43,7 +57,7 @@ function render() {
   const query = state.query.trim().toLocaleLowerCase("pt-BR");
   const senators = [...state.data.senadores]
     .filter((item) => `${item.nome} ${item.partido} ${item.uf}`.toLocaleLowerCase("pt-BR").includes(query))
-    .sort((a, b) => b[state.sort] - a[state.sort]);
+    .sort(criterion.compare);
 
   document.querySelector("#criterio-explicacao").textContent = criterion.description;
   const detailParameter = criterion.parameter || "criterio";
@@ -57,6 +71,10 @@ function render() {
           <a href="senador.html?id=${encodeURIComponent(senador.id)}">${escapeHtml(senador.nome)}</a>
           <small>${escapeHtml(senador.partido)} · ${escapeHtml(senador.uf)}</small>
         </div>
+      </div>
+      <div class="since">
+        <span>${senador.exercicio_inicio ? date.format(new Date(`${senador.exercicio_inicio}T00:00:00Z`)) : "—"}</span>
+        <small>${escapeHtml(senador.participacao || "")}</small>
       </div>
       <div class="category">
         <a href="${criterion.page}?id=${encodeURIComponent(senador.id)}&${detailParameter}=${encodeURIComponent(detailTarget)}">${escapeHtml(criterion.category(senador))}</a>

@@ -131,22 +131,46 @@ function renderAttendance(summary) {
     <div class="attendance-legend">${items.map((item) => `<span><i class="${item.className}"></i>${item.label}: <strong>${item.value}</strong></span>`).join("")}</div>`;
 }
 
+function renderProjects(projects) {
+  const target = document.querySelector("#projetos-recentes");
+  target.innerHTML = projects.length ? projects.slice(0, 5).map((project) => `
+    <li>
+      <a class="expense-link" href="${escapeHtml(project.url_documento)}" target="_blank" rel="noreferrer">${escapeHtml(project.identificacao)}</a>
+      <span>${escapeHtml(project.ementa)}</span>
+      <small>${escapeHtml(project.situacao)}${project.tramitando ? " · em tramitação" : ""}</small>
+    </li>`).join("") : '<li class="empty-chart">Nenhum projeto apresentado no período.</li>';
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function load() {
   if (!senatorId) return showError();
   try {
     const base = `data/senadores/${encodeURIComponent(senatorId)}`;
-    const [profileResponse, expensesResponse] = await Promise.all([
+    const responses = await Promise.all([
       fetch(`${base}/perfil.json`),
       fetch(`${base}/despesas.json`),
+      fetch(`${base}/projetos.json`),
     ]);
-    if (!profileResponse.ok || !expensesResponse.ok) throw new Error("Não foi possível carregar os dados");
-    const [data, expensesData] = await Promise.all([profileResponse.json(), expensesResponse.json()]);
+    if (responses.some((response) => !response.ok)) throw new Error("Não foi possível carregar os dados");
+    const [data, expensesData, projectsData] = await Promise.all(responses.map((response) => response.json()));
     const person = data.parlamentar;
     const summary = data.resumo;
     document.title = `${person.nome} — Saiu do Seu Bolso`;
     document.querySelector("#foto").src = person.url_foto;
     document.querySelector("#nome").textContent = person.nome;
     document.querySelector("#meta").textContent = `${person.partido} · ${person.uf}`;
+    if (person.exercicio_inicio) {
+      const since = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${person.exercicio_inicio}T00:00:00Z`));
+      document.querySelector("#exercicio").textContent = `${person.participacao || "No cargo"} · atuando desde ${since}`;
+    }
     document.querySelector("#perfil-oficial").href = person.url_perfil;
     document.querySelector("#total").textContent = money.format(summary.total_gasto);
     document.querySelector("#quantidade").textContent = `${summary.quantidade_despesas} despesas`;
@@ -157,6 +181,9 @@ async function load() {
     document.querySelector("#faltas").textContent = `${summary.faltas}`;
     document.querySelector("#presenca").textContent = `${summary.percentual_presenca}% de presença`;
     document.querySelector("#justificadas").textContent = summary.faltas_justificadas;
+    document.querySelector("#projetos").textContent = `${summary.projetos}`;
+    document.querySelector("#projetos-mes").textContent = `${summary.projetos_tramitando} em tramitação · ${summary.autorias} autorias no total`;
+    document.querySelector("#ver-projetos").href = `projetos.html?id=${encodeURIComponent(senatorId)}`;
     document.querySelector("#categoria").textContent = summary.categoria_principal || "Sem despesas";
     document.querySelector("#categoria-valor").textContent = money.format(summary.categoria_principal_valor);
     document.querySelector("#fornecedor-fato").textContent = summary.fornecedor_principal || "Sem despesas";
@@ -167,6 +194,7 @@ async function load() {
     document.querySelector("#fonte").href = data.fonte;
     renderExpenseCharts(expensesData.despesas);
     renderAttendance(summary);
+    renderProjects(projectsData.projetos);
     document.querySelector("#conteudo").hidden = false;
   } catch (error) {
     console.error(error);

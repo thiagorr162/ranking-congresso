@@ -18,6 +18,7 @@ class Parlamentar:
     mandato_inicio: str | None = None
     mandato_fim: str | None = None
     participacao: str | None = None
+    exercicio_inicio: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -51,6 +52,23 @@ class Comparecimento:
     status: str
     status_descricao: str | None
     descricao_votacao: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class Autoria:
+    parlamentar_id: str
+    id_fonte: str
+    identificacao: str
+    tipo: str
+    ementa: str | None
+    data: str | None
+    situacao: str | None
+    tramitando: bool
+    autoria: str | None
+    url_documento: str | None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

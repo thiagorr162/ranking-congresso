@@ -5,10 +5,15 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from deputados.build import construir_site
-from deputados.collector import salvar, salvar_comparecimentos, salvar_despesas
+from deputados.collector import salvar, salvar_autorias, salvar_comparecimentos, salvar_despesas
 from deputados.sources.camara import SOURCE_URL as CAMARA_URL
 from deputados.sources.camara import CamaraSource
-from deputados.sources.senado import EXPENSES_SOURCE_URL, VOTES_SOURCE_URL, SenadoSource
+from deputados.sources.senado import (
+    AUTHORSHIP_SOURCE_URL,
+    EXPENSES_SOURCE_URL,
+    VOTES_SOURCE_URL,
+    SenadoSource,
+)
 from deputados.sources.senado import SOURCE_URL as SENADO_URL
 
 
@@ -59,6 +64,14 @@ def coletar(casa: str, saida: Path, ano: int) -> int:
                 output_dir=saida,
             )
             print(f"senado: {len(comparecimentos)} registros de comparecimento -> {destino}")
+            autorias = fonte.autorias((parlamentar.id_fonte for parlamentar in parlamentares), ano)
+            destino = salvar_autorias(
+                autorias,
+                ano=ano,
+                source_url=AUTHORSHIP_SOURCE_URL,
+                output_dir=saida,
+            )
+            print(f"senado: {len(autorias)} autorias -> {destino}")
     return 0
 
 

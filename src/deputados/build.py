@@ -7,6 +7,14 @@ from typing import Any
 PRESENT_STATUSES = {"Sim", "Não", "Abstenção", "Votou", "P-NRV", "Presidente (art. 51 RISF)"}
 VOTE_STATUSES = {"Sim", "Não", "Abstenção", "Votou"}
 JUSTIFIED_STATUSES = {"AP", "LS", "MIS", "LP", "LAP"}
+TIPOS_PROJETO = {
+    "Projeto de Lei Ordinária",
+    "Projeto de Lei Complementar",
+    "Proposta de Emenda à Constituição",
+    "Projeto de Decreto Legislativo",
+    "Projeto de Resolução",
+    "Projeto de Resolução do Senado",
+}
 STATUS_LABELS = {
     "AP": "Atividade parlamentar",
     "LS": "Licença-saúde",
@@ -79,10 +87,37 @@ def _agregar_frequencia(registros: list[dict[str, Any]]) -> dict[str, dict[str, 
     return resultado
 
 
+def _agregar_projetos(
+    parlamentares: list[dict[str, Any]],
+    autorias: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    por_parlamentar: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for autoria in autorias:
+        por_parlamentar[autoria["parlamentar_id"]][autoria["id_fonte"]] = autoria
+
+    resultado = {}
+    for parlamentar in parlamentares:
+        parlamentar_id = parlamentar["id_fonte"]
+        registros = list(por_parlamentar[parlamentar_id].values())
+        projetos = sorted(
+            (item for item in registros if item["tipo"] in TIPOS_PROJETO),
+            key=lambda item: item.get("data") or "",
+            reverse=True,
+        )
+        resultado[parlamentar_id] = {
+            "projetos": len(projetos),
+            "projetos_tramitando": sum(item["tramitando"] for item in projetos),
+            "autorias": len(registros),
+            "lista": projetos,
+        }
+    return resultado
+
+
 def _agregar(
     parlamentares: list[dict[str, Any]],
     despesas: list[dict[str, Any]],
     frequencias: dict[str, dict[str, Any]],
+    projetos: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
     por_senador: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for despesa in despesas:
@@ -142,6 +177,9 @@ def _agregar(
                 "votos_registrados": frequencia["votos_registrados"],
                 "votacoes_total": frequencia["votacoes_total"],
                 "presente_sem_voto": frequencia["presente_sem_voto"],
+                "participacao": senador.get("participacao"),
+                "exercicio_inicio": senador.get("exercicio_inicio"),
+                **{chave: valor for chave, valor in projetos[senador["id_fonte"]].items() if chave != "lista"},
             }
         )
     return ranking
@@ -151,8 +189,10 @@ def construir_site(*, ano: int, data_dir: Path, output_dir: Path) -> Path:
     senadores_doc = _carregar(data_dir / "senado" / "parlamentares.json")
     despesas_doc = _carregar(data_dir / "senado" / f"despesas-{ano}.json")
     comparecimentos_doc = _carregar(data_dir / "senado" / f"comparecimentos-{ano}.json")
+    autorias_doc = _carregar(data_dir / "senado" / f"autorias-{ano}.json")
     frequencias = _agregar_frequencia(comparecimentos_doc["dados"])
-    ranking = _agregar(senadores_doc["dados"], despesas_doc["dados"], frequencias)
+    projetos = _agregar_projetos(senadores_doc["dados"], autorias_doc["dados"])
+    ranking = _agregar(senadores_doc["dados"], despesas_doc["dados"], frequencias, projetos)
 
     source_dir = Path(__file__).parents[2] / "web"
     if output_dir.exists():
@@ -166,6 +206,7 @@ def construir_site(*, ano: int, data_dir: Path, output_dir: Path) -> Path:
         "fonte": despesas_doc["url_origem"],
         "total_senadores": len(ranking),
         "total_gasto": round(sum(item["total_gasto"] for item in ranking), 2),
+        "projetos_fonte": autorias_doc["url_origem"],
         "senadores": ranking,
     }
     (data_output / "senadores.json").write_text(
@@ -191,6 +232,11 @@ def construir_site(*, ano: int, data_dir: Path, output_dir: Path) -> Path:
         }
         arquivos = {
             "perfil.json": base,
+            "projetos.json": {
+                **base,
+                "fonte": autorias_doc["url_origem"],
+                "projetos": projetos[senador_id]["lista"],
+            },
             "frequencia.json": {
                 **base,
                 "frequencia": frequencias.get(senador_id, {"sessoes": []}),

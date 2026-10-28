@@ -31,6 +31,23 @@ def test_normaliza_e_pagina_camara() -> None:
 
 def test_normaliza_senado_com_um_parlamentar() -> None:
     def fake_get(path):
+        if path == "senador/456/mandatos":
+            return {
+                "MandatoParlamentar": {
+                    "Parlamentar": {
+                        "Mandatos": {
+                            "Mandato": {
+                                "Exercicios": {
+                                    "Exercicio": [
+                                        {"DataInicio": "2023-02-01", "DataFim": "2024-05-10"},
+                                        {"DataInicio": "2024-09-01"},
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         assert path == "senador/lista/atual"
         return {
             "ListaParlamentarEmExercicio": {
@@ -70,6 +87,7 @@ def test_normaliza_senado_com_um_parlamentar() -> None:
     assert senadores[0].nome_civil == "João da Silva Souza"
     assert senadores[0].legislatura == "57,58"
     assert senadores[0].mandato_fim == "2031-01-31"
+    assert senadores[0].exercicio_inicio == "2024-09-01"
 
 
 def test_normaliza_despesa_sem_categoria() -> None:
@@ -94,3 +112,31 @@ def test_normaliza_despesa_sem_categoria() -> None:
     assert despesa.cpf_cnpj == "00.000.000/0001-00"
     assert despesa.detalhamento == "Serviço prestado"
     assert despesa.valor == 150.5
+
+
+def test_coleta_autorias_por_senador() -> None:
+    chamadas = []
+
+    def fake_get(path, params):
+        chamadas.append((path, params))
+        return [
+            {
+                "id": 99,
+                "identificacao": "PL 1/2026",
+                "tipoDocumento": "Projeto de Lei Ordinária",
+                "ementa": "Dispõe sobre algo.",
+                "dataApresentacao": "2026-02-01",
+                "situacaoAtual": "AGUARDANDO RELATOR",
+                "tramitando": "Sim",
+                "autoria": "Senador João Souza (XYZ/MG)",
+                "urlDocumento": "https://example.test/doc",
+            }
+        ]
+
+    autorias = SenadoSource(fake_get).autorias(["456"], 2026)
+
+    assert chamadas[0][0] == "processo"
+    assert chamadas[0][1]["codigoParlamentarAutor"] == "456"
+    assert chamadas[0][1]["dataInicioApresentacao"] == "2026-01-01"
+    assert autorias[0].parlamentar_id == "456"
+    assert autorias[0].tramitando is True

@@ -22,6 +22,7 @@
             <p class="eyebrow">SENADOR</p>
             <h1 id="nome"></h1>
             <div id="meta" class="profile-meta"></div>
+            <div id="exercicio" class="profile-since"></div>
             <a id="perfil-oficial" class="official-link" target="_blank" rel="noreferrer">Perfil oficial ↗</a>
           </div>
         </div>
@@ -31,6 +32,7 @@
           <article class="metric-card"><span>Maior despesa</span><strong id="maior"></strong><small id="maior-fornecedor"></small></article>
           <article class="metric-card"><span>Principal fornecedor</span><strong id="concentracao"></strong><small id="fornecedor"></small></article>
           <article class="metric-card"><span>Não compareceu</span><strong id="faltas"></strong><small id="presenca"></small></article>
+          <article class="metric-card"><span>Projetos no ano</span><strong id="projetos"></strong><small id="projetos-mes"></small></article>
         </div>
 
         <section class="detail-section">
@@ -74,9 +76,15 @@
           <div id="grafico-presenca" class="attendance-chart" aria-label="Resumo de presença e ausências"></div>
           <a id="ver-frequencia" class="official-link">Ver sessões e justificativas →</a>
         </section>
+        <section class="detail-section">
+          <h2>Projetos apresentados</h2>
+          <p class="section-note">Projetos de lei e PECs apresentados no ano, como autor ou coautor. Os 5 mais recentes.</p>
+          <ul id="projetos-recentes" class="project-list"></ul>
+          <a id="ver-projetos" class="official-link">Ver todos os projetos →</a>
+        </section>
       </section>
       <p id="erro" class="error" hidden>Não foi possível carregar este senador.</p>
     </main>
-    <footer><span>Dados oficiais do Senado Federal</span><a id="fonte" target="_blank" rel="noreferrer">Conferir fonte ↗</a></footer>
+    <footer><span>Dados oficiais do Senado Federal</span><span class="footer-links"><a id="fonte" target="_blank" rel="noreferrer">Conferir fonte ↗</a><a href="https://github.com/thiagorr162/de-putados" target="_blank" rel="noreferrer">Código no GitHub ↗</a></span></footer>
   </body>
 </html>
