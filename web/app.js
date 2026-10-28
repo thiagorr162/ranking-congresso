@@ -100,6 +100,7 @@ async function load() {
     state.data = await response.json();
     const top = [...state.data.parlamentares].sort((a, b) => b.total_gasto - a.total_gasto)[0];
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
+    startComparisons(document.querySelector("#comparacao-total"), state.data.total_gasto);
     document.querySelector("#maior-nome").textContent = top?.nome || "—";
     document.querySelector("#maior-valor").textContent = top ? money.format(top.total_gasto) : "";
     document.querySelector("#atualizado").textContent = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" })

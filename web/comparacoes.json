@@ -1,0 +1,50 @@
+[
+  {
+    "valor": 1621.0,
+    "singular": "salário mínimo",
+    "plural": "salários mínimos",
+    "referencia": "Salário mínimo de 2026",
+    "fonte": "Decreto nº 12.797/2025",
+    "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12797.htm"
+  },
+  {
+    "valor": 691.0,
+    "singular": "Bolsa Família",
+    "plural": "Bolsas Família",
+    "referencia": "Bolsa Família: benefício mínimo mensal por família, desde outubro de 2026",
+    "fonte": "Ministério do Desenvolvimento e Assistência Social",
+    "url": "https://www.gov.br/mds/pt-br/acoes-e-programas/bolsa-familia"
+  },
+  {
+    "valor": 114.73,
+    "singular": "botijão de gás",
+    "plural": "botijões de gás",
+    "referencia": "Botijão de 13 kg: preço médio nacional na semana encerrada em 17/10/2026",
+    "fonte": "ANP — Levantamento de Preços de Combustíveis",
+    "url": "https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/levantamento-de-precos-de-combustiveis-ultimas-semanas-pesquisadas"
+  },
+  {
+    "valor": 922.51,
+    "singular": "cesta básica",
+    "plural": "cestas básicas",
+    "referencia": "Cesta básica em São Paulo, setembro de 2026",
+    "fonte": "DIEESE e Conab — Pesquisa Nacional da Cesta Básica",
+    "url": "https://www.dieese.org.br/analisecestabasica/2026/202609cestabasica.pdf"
+  },
+  {
+    "valor": 5130.63,
+    "singular": "salário de professor",
+    "plural": "salários de professor",
+    "referencia": "Piso nacional do magistério, 40 horas, 2026",
+    "fonte": "Portaria MEC nº 82/2026",
+    "url": "https://undime.org.br/noticia/30-01-2026-22-29-publicada-portaria-do-mec-com-o-valor-do-piso-salarial-nacional-do-magisterio-publico-da-educacao-basica-para-o-exercicio-de-2026"
+  },
+  {
+    "valor": 4750.0,
+    "singular": "salário de enfermeiro",
+    "plural": "salários de enfermeiro",
+    "referencia": "Piso nacional da enfermagem",
+    "fonte": "Lei nº 14.434/2022",
+    "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14434.htm"
+  }
+]

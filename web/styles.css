@@ -132,6 +132,10 @@ h2 { margin: 0; font-size: 30px; }
 .value { text-align: right; }
 .value strong { font-size: 19px; }
 .error { padding: 30px; color: var(--red); text-align: center; }
+.comparison { margin-top: 6px; font-size: 13px; }
+.comparison a { color: var(--green); text-decoration: none; }
+.comparison a:hover { text-decoration: underline; }
+.summary .comparison strong, .metric-card .comparison strong, .comparison strong { display: inline; margin: 0; font-size: inherit; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .since { font-size: 14px; }
 .since small { display: block; margin-top: 4px; color: var(--muted); }

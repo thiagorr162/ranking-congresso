@@ -175,6 +175,7 @@ async function load() {
     }
     document.querySelector("#perfil-oficial").href = person.url_perfil;
     document.querySelector("#total").textContent = money.format(summary.total_gasto);
+    startComparisons(document.querySelector("#comparacao-gasto"), summary.total_gasto);
     document.querySelector("#quantidade").textContent = `${summary.quantidade_despesas} despesas`;
     document.querySelector("#maior").textContent = money.format(summary.maior_despesa);
     document.querySelector("#maior-fornecedor").textContent = summary.maior_despesa_fornecedor || "Sem despesas";
