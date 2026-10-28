@@ -6,12 +6,13 @@
     <meta name="description" content="Detalhamento de uma despesa parlamentar." />
     <title>Detalhe da despesa — Saiu do Seu Bolso</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="casa.js" defer></script>
     <script src="despesa.js" defer></script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
-      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+      <nav id="nav-casas" aria-label="Navegação principal"></nav>
     </header>
     <main>
       <a id="voltar" class="back-link" href="./">← Voltar às despesas</a>
@@ -28,6 +29,8 @@
           <article class="fact"><span>Documento</span><strong id="tipo-documento"></strong><small id="documento"></small></article>
           <article class="fact"><span>Data</span><strong id="data"></strong><small id="referencia"></small></article>
           <article class="fact"><span>Identificador oficial</span><strong id="identificador"></strong></article>
+          <article id="viagem-card" class="fact" hidden><span>Passageiro</span><strong id="passageiro"></strong><small id="trecho"></small></article>
+          <article id="comprovante-card" class="fact" hidden><span>Comprovante</span><strong><a id="comprovante" class="expense-link" target="_blank" rel="noreferrer">Ver nota fiscal ↗</a></strong></article>
         </div>
         <section class="expense-context">
           <h2>Contexto no ano</h2>

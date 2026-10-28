@@ -1,6 +1,6 @@
 import json
 import time
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -18,6 +18,17 @@ class JsonClient:
         self.attempts = attempts
 
     def get(self, path: str, params: Mapping[str, str | int] | None = None) -> Any:
+        return self._baixar(path, params, json.loads)
+
+    def get_bytes(self, path: str) -> bytes:
+        return self._baixar(path, None, lambda conteudo: conteudo)
+
+    def _baixar(
+        self,
+        path: str,
+        params: Mapping[str, str | int] | None,
+        converter: Callable[[bytes], Any],
+    ) -> Any:
         query = f"?{urlencode(params)}" if params else ""
         url = f"{self.base_url}/{path.lstrip('/')}{query}"
         request = Request(
@@ -31,7 +42,7 @@ class JsonClient:
         for attempt in range(1, self.attempts + 1):
             try:
                 with urlopen(request, timeout=self.timeout) as response:  # noqa: S310 - URLs oficiais fixas
-                    return json.load(response)
+                    return converter(response.read())
             except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
                 if attempt == self.attempts:
                     raise ApiError(f"Falha ao consultar {url}: {error}") from error

@@ -51,9 +51,9 @@ function renderExpenses() {
   document.querySelector("#despesas").innerHTML = orderedExpenses().map((expense) => `
     <tr>
       <td>${expense.data ? date.format(new Date(`${expense.data}T00:00:00Z`)) : "Não informada"}</td>
-      <td><a class="expense-link" href="despesa.html?id=${encodeURIComponent(senatorId)}&despesa=${encodeURIComponent(expense.id_fonte)}">${escapeHtml(expense.tipo)}</a>${expense.detalhamento ? `<small class="cell-detail">${escapeHtml(expense.detalhamento)}</small>` : '<small class="cell-detail">Sem detalhamento adicional</small>'}</td>
+      <td><a class="expense-link" href="${pageUrl("despesa.html", { id: senatorId, despesa: expense.id_fonte })}">${escapeHtml(expense.tipo)}</a>${expense.detalhamento ? `<small class="cell-detail">${escapeHtml(expense.detalhamento)}</small>` : '<small class="cell-detail">Sem detalhamento adicional</small>'}</td>
       <td>${escapeHtml(expense.fornecedor)}<small class="cell-detail">${escapeHtml(expense.cpf_cnpj)}</small></td>
-      <td>${escapeHtml(expense.tipo_documento)}<small class="cell-detail">Nº ${escapeHtml(expense.documento)}</small></td>
+      <td>${expense.url_documento ? `<a class="expense-link" href="${escapeHtml(expense.url_documento)}" target="_blank" rel="noreferrer">${escapeHtml(expense.tipo_documento)} ↗</a>` : escapeHtml(expense.tipo_documento)}<small class="cell-detail">Nº ${escapeHtml(expense.documento)}</small></td>
       <td><strong>${money.format(expense.valor)}</strong></td>
     </tr>
   `).join("");
@@ -62,7 +62,7 @@ function renderExpenses() {
 async function load() {
   if (!senatorId) return showError();
   try {
-    const response = await fetch(`data/senadores/${encodeURIComponent(senatorId)}/despesas.json`);
+    const response = await fetch(dataUrl(`${encodeURIComponent(senatorId)}/despesas.json`));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const expenses = selectExpenses(data);
@@ -72,7 +72,7 @@ async function load() {
     document.querySelector("#rotulo").textContent = label;
     document.querySelector("#titulo").textContent = title;
     document.querySelector("#descricao").textContent = description;
-    document.querySelector("#voltar").href = `senador.html?id=${encodeURIComponent(senatorId)}`;
+    document.querySelector("#voltar").href = pageUrl("perfil.html", { id: senatorId });
     document.querySelector("#contagem").textContent = `${expenses.length} ${expenses.length === 1 ? "despesa" : "despesas"}`;
     document.querySelector("#fonte").href = data.fonte;
     renderExpenses();

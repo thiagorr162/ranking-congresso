@@ -5,13 +5,13 @@ const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 const date = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 
 function valueOrMissing(value) {
-  return value || "Não informado pelo Senado";
+  return value || `Não informado ${CASA.pelo}`;
 }
 
 async function load() {
   if (!senatorId || !expenseId) return showError();
   try {
-    const response = await fetch(`data/senadores/${encodeURIComponent(senatorId)}/despesas.json`);
+    const response = await fetch(dataUrl(`${encodeURIComponent(senatorId)}/despesas.json`));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const expense = data.despesas.find((item) => item.id_fonte === expenseId);
@@ -34,7 +34,7 @@ async function load() {
     document.querySelector("#documento").textContent = expense.documento ? `Nº ${expense.documento}` : "Número não informado";
     document.querySelector("#data").textContent = expense.data
       ? date.format(new Date(`${expense.data}T00:00:00Z`))
-      : "Não informada pelo Senado";
+      : `Não informada ${CASA.pelo}`;
     document.querySelector("#referencia").textContent = `Referência: ${String(expense.mes).padStart(2, "0")}/${expense.ano}`;
     document.querySelector("#identificador").textContent = expense.id_fonte;
     document.querySelector("#total-fornecedor").textContent = money.format(supplierTotal);
@@ -43,11 +43,20 @@ async function load() {
     document.querySelector("#quantidade-categoria").textContent = `${sameCategory.length} ${sameCategory.length === 1 ? "despesa" : "despesas"} no ano`;
     document.querySelector("#total-mes").textContent = money.format(monthTotal);
     document.querySelector("#participacao-mes").textContent = `${monthTotal ? (expense.valor / monthTotal * 100).toFixed(1).replace(".", ",") : "0"}% corresponde a esta despesa`;
-    document.querySelector("#aviso-dados").textContent = expense.detalhamento
-      ? "As informações acima reproduzem e contextualizam os dados publicados pelo Senado Federal."
-      : "O Senado Federal não publicou detalhamento adicional nem link para comprovante neste registro.";
+    document.querySelector("#aviso-dados").textContent = expense.detalhamento || expense.url_documento
+      ? `As informações acima reproduzem e contextualizam os dados publicados ${CASA.pelo}.`
+      : `${CASA.orgao}: não houve publicação de detalhamento adicional nem de link para comprovante neste registro.`;
+    if (expense.url_documento) {
+      document.querySelector("#comprovante").href = expense.url_documento;
+      document.querySelector("#comprovante-card").hidden = false;
+    }
+    if (expense.passageiro || expense.trecho) {
+      document.querySelector("#passageiro").textContent = valueOrMissing(expense.passageiro);
+      document.querySelector("#trecho").textContent = expense.trecho ? `Trecho: ${expense.trecho}` : "";
+      document.querySelector("#viagem-card").hidden = false;
+    }
     document.querySelector("#fonte").href = data.fonte;
-    document.querySelector("#voltar").href = `despesas.html?id=${encodeURIComponent(senatorId)}&criterio=total_gasto`;
+    document.querySelector("#voltar").href = pageUrl("despesas.html", { id: senatorId, criterio: "total_gasto" });
     document.querySelector("#conteudo").hidden = false;
   } catch (error) {
     console.error(error);

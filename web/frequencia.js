@@ -20,9 +20,9 @@ function render() {
   document.querySelector("#sessoes").innerHTML = sessions.map((session) => `
     <tr>
       <td>${date.format(new Date(`${session.data}T00:00:00Z`))}</td>
-      <td><span class="status status-${escapeHtml(session.classificacao)}">${session.classificacao === "falta" ? "Não compareceu" : session.classificacao === "justificada" ? "Justificada" : "Presença"}</span></td>
-      <td>${escapeHtml(session.motivo)}</td>
-      <td>${session.votacoes}</td>
+      <td><span class="status status-${escapeHtml(session.classificacao)}">${session.classificacao === "falta" ? (CASA.temJustificativas ? "Não compareceu" : "Sem presença") : session.classificacao === "justificada" ? "Justificada" : "Presença"}</span></td>
+      <td>${escapeHtml(CASA.temJustificativas ? session.motivo : session.descricao)}</td>
+      ${CASA.temJustificativas ? `<td>${session.votacoes}</td>` : ""}
     </tr>
   `).join("");
 }
@@ -30,13 +30,17 @@ function render() {
 async function load() {
   if (!senatorId) return showError();
   try {
-    const response = await fetch(`data/senadores/${encodeURIComponent(senatorId)}/frequencia.json`);
+    const response = await fetch(dataUrl(`${encodeURIComponent(senatorId)}/frequencia.json`));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
     const summary = state.data.resumo;
     document.title = `${state.data.parlamentar.nome} — Frequência`;
     document.querySelector("#nome").textContent = state.data.parlamentar.nome;
-    document.querySelector("#voltar").href = `senador.html?id=${encodeURIComponent(senatorId)}`;
+    document.querySelector("#voltar").href = pageUrl("perfil.html", { id: senatorId });
+    document.querySelector("#sessoes-descricao").textContent = CASA.sessoes;
+    document.querySelector("#cabecalho").innerHTML = CASA.temJustificativas
+      ? "<tr><th>Data</th><th>Situação</th><th>Motivo oficial</th><th>Votações</th></tr>"
+      : "<tr><th>Data</th><th>Situação</th><th>Sessão</th></tr>";
     document.querySelector("#presencas").textContent = summary.presencas;
     document.querySelector("#faltas").textContent = summary.faltas;
     document.querySelector("#justificadas").textContent = summary.faltas_justificadas;

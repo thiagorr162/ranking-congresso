@@ -3,23 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Resumo dos gastos e das faltas de um senador." />
-    <title>Senador — Saiu do Seu Bolso</title>
+    <meta name="description" content="Resumo dos gastos, das faltas e dos projetos de um parlamentar." />
+    <title>Parlamentar — Saiu do Seu Bolso</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="senador.js" defer></script>
+    <script src="casa.js" defer></script>
+    <script src="perfil.js" defer></script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
-      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+      <nav id="nav-casas" aria-label="Navegação principal"></nav>
     </header>
     <main>
-      <a class="back-link" href="./">← Voltar ao ranking</a>
+      <a id="voltar" class="back-link" href="./">← Voltar ao ranking</a>
       <section id="conteudo" hidden>
         <div class="profile-hero">
           <img id="foto" alt="" />
           <div>
-            <p class="eyebrow">SENADOR</p>
+            <p id="rotulo" class="eyebrow"></p>
             <h1 id="nome"></h1>
             <div id="meta" class="profile-meta"></div>
             <div id="exercicio" class="profile-since"></div>
@@ -31,7 +32,7 @@
           <article class="metric-card"><span>Gasto no ano</span><strong id="total"></strong><small id="quantidade"></small></article>
           <article class="metric-card"><span>Maior despesa</span><strong id="maior"></strong><small id="maior-fornecedor"></small></article>
           <article class="metric-card"><span>Principal fornecedor</span><strong id="concentracao"></strong><small id="fornecedor"></small></article>
-          <article class="metric-card"><span>Não compareceu</span><strong id="faltas"></strong><small id="presenca"></small></article>
+          <article class="metric-card"><span data-rotulo-falta>Não compareceu</span><strong id="faltas"></strong><small id="presenca"></small></article>
           <article class="metric-card"><span>Projetos no ano</span><strong id="projetos"></strong><small id="projetos-mes"></small></article>
         </div>
 
@@ -72,7 +73,7 @@
         </section>
         <section class="detail-section frequency-callout">
           <h2>Presença em sessões deliberativas</h2>
-          <p><strong id="justificadas"></strong> ausências justificadas no período.</p>
+          <p data-so-senado><strong id="justificadas"></strong> ausências justificadas no período.</p>
           <div id="grafico-presenca" class="attendance-chart" aria-label="Resumo de presença e ausências"></div>
           <a id="ver-frequencia" class="official-link">Ver sessões e justificativas →</a>
         </section>
@@ -83,8 +84,8 @@
           <a id="ver-projetos" class="official-link">Ver todos os projetos →</a>
         </section>
       </section>
-      <p id="erro" class="error" hidden>Não foi possível carregar este senador.</p>
+      <p id="erro" class="error" hidden>Não foi possível carregar este parlamentar.</p>
     </main>
-    <footer><span>Dados oficiais do Senado Federal</span><span class="footer-links"><a id="fonte" target="_blank" rel="noreferrer">Conferir fonte ↗</a><a href="https://github.com/thiagorr162/saiu-do-seu-bolso" target="_blank" rel="noreferrer">Código no GitHub ↗</a></span></footer>
+    <footer><span>Dados oficiais: <span data-orgao></span></span><span class="footer-links"><a id="fonte" target="_blank" rel="noreferrer">Conferir fonte ↗</a><a href="https://github.com/thiagorr162/saiu-do-seu-bolso" target="_blank" rel="noreferrer">Código no GitHub ↗</a></span></footer>
   </body>
 </html>

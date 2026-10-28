@@ -123,7 +123,7 @@ function renderAttendance(summary) {
   const items = [
     { label: "Presenças", value: summary.presencas, className: "present" },
     { label: "Faltas", value: summary.faltas, className: "absent" },
-    { label: "Justificadas", value: summary.faltas_justificadas, className: "justified" },
+    ...(CASA.temJustificativas ? [{ label: "Justificadas", value: summary.faltas_justificadas, className: "justified" }] : []),
   ];
   const total = items.reduce((sum, item) => sum + item.value, 0);
   document.querySelector("#grafico-presenca").innerHTML = `
@@ -153,11 +153,11 @@ function escapeHtml(value) {
 async function load() {
   if (!senatorId) return showError();
   try {
-    const base = `data/senadores/${encodeURIComponent(senatorId)}`;
+    const base = encodeURIComponent(senatorId);
     const responses = await Promise.all([
-      fetch(`${base}/perfil.json`),
-      fetch(`${base}/despesas.json`),
-      fetch(`${base}/projetos.json`),
+      fetch(dataUrl(`${base}/perfil.json`)),
+      fetch(dataUrl(`${base}/despesas.json`)),
+      fetch(dataUrl(`${base}/projetos.json`)),
     ]);
     if (responses.some((response) => !response.ok)) throw new Error("Não foi possível carregar os dados");
     const [data, expensesData, projectsData] = await Promise.all(responses.map((response) => response.json()));
@@ -166,6 +166,8 @@ async function load() {
     document.title = `${person.nome} — Saiu do Seu Bolso`;
     document.querySelector("#foto").src = person.url_foto;
     document.querySelector("#nome").textContent = person.nome;
+    document.querySelector("#rotulo").textContent = CASA.rotulo;
+    document.querySelector("#voltar").href = CASA_ID === "camara" ? "./" : `./?casa=${CASA_ID}`;
     document.querySelector("#meta").textContent = `${person.partido} · ${person.uf}`;
     if (person.exercicio_inicio) {
       const since = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${person.exercicio_inicio}T00:00:00Z`));
@@ -183,14 +185,14 @@ async function load() {
     document.querySelector("#justificadas").textContent = summary.faltas_justificadas;
     document.querySelector("#projetos").textContent = `${summary.projetos}`;
     document.querySelector("#projetos-mes").textContent = `${summary.projetos_tramitando} em tramitação · ${summary.autorias} autorias no total`;
-    document.querySelector("#ver-projetos").href = `projetos.html?id=${encodeURIComponent(senatorId)}`;
+    document.querySelector("#ver-projetos").href = pageUrl("projetos.html", { id: senatorId });
     document.querySelector("#categoria").textContent = summary.categoria_principal || "Sem despesas";
     document.querySelector("#categoria-valor").textContent = money.format(summary.categoria_principal_valor);
     document.querySelector("#fornecedor-fato").textContent = summary.fornecedor_principal || "Sem despesas";
     document.querySelector("#fornecedor-valor").textContent = money.format(summary.fornecedor_principal_valor);
-    document.querySelector("#ver-todas").href = `despesas.html?id=${encodeURIComponent(senatorId)}&criterio=total_gasto`;
-    document.querySelector("#ver-fornecedor").href = `despesas.html?id=${encodeURIComponent(senatorId)}&criterio=concentracao_fornecedor`;
-    document.querySelector("#ver-frequencia").href = `frequencia.html?id=${encodeURIComponent(senatorId)}`;
+    document.querySelector("#ver-todas").href = pageUrl("despesas.html", { id: senatorId, criterio: "total_gasto" });
+    document.querySelector("#ver-fornecedor").href = pageUrl("despesas.html", { id: senatorId, criterio: "concentracao_fornecedor" });
+    document.querySelector("#ver-frequencia").href = pageUrl("frequencia.html", { id: senatorId });
     document.querySelector("#fonte").href = data.fonte;
     renderExpenseCharts(expensesData.despesas);
     renderAttendance(summary);

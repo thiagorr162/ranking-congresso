@@ -37,13 +37,13 @@ function render() {
 async function load() {
   if (!senatorId) return showError();
   try {
-    const response = await fetch(`data/senadores/${encodeURIComponent(senatorId)}/projetos.json`);
+    const response = await fetch(dataUrl(`${encodeURIComponent(senatorId)}/projetos.json`));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
     const summary = state.data.resumo;
     document.title = `${state.data.parlamentar.nome} — Projetos`;
     document.querySelector("#nome").textContent = state.data.parlamentar.nome;
-    document.querySelector("#voltar").href = `senador.html?id=${encodeURIComponent(senatorId)}`;
+    document.querySelector("#voltar").href = pageUrl("perfil.html", { id: senatorId });
     document.querySelector("#projetos").textContent = summary.projetos;
     document.querySelector("#tramitando").textContent = summary.projetos_tramitando;
     document.querySelector("#autorias").textContent = summary.autorias;

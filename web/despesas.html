@@ -3,15 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Detalhes das despesas de um senador." />
+    <meta name="description" content="Detalhes das despesas de um parlamentar." />
     <title>Despesas — Saiu do Seu Bolso</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="casa.js" defer></script>
     <script src="despesas.js" defer></script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
-      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+      <nav id="nav-casas" aria-label="Navegação principal"></nav>
     </header>
     <main>
       <a id="voltar" class="back-link" href="./">← Voltar</a>

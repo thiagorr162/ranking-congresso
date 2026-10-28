@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Ranking simples e verificável dos gastos dos senadores brasileiros." />
-    <title>Saiu do Seu Bolso — Ranking dos Senadores</title>
+    <meta name="description" content="Ranking simples e verificável dos gastos de deputados e senadores brasileiros." />
+    <title>Saiu do Seu Bolso — Ranking dos parlamentares</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="casa.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -14,16 +15,13 @@
         <span class="brand-mark">SB</span>
         <span>Saiu do Seu Bolso</span>
       </a>
-      <nav aria-label="Navegação principal">
-        <a class="active" href="./">Senadores</a>
-        <span class="soon">Deputados <small>em breve</small></span>
-      </nav>
+      <nav id="nav-casas" aria-label="Navegação principal"></nav>
     </header>
 
     <main>
       <section class="intro">
         <p class="eyebrow">Pra onde vai o seu dinheiro?</p>
-        <h1>Ranking dos senadores</h1>
+        <h1 id="titulo-ranking">Ranking</h1>
       </section>
 
       <section class="summary" aria-label="Resumo">
@@ -49,8 +47,8 @@
             <p id="criterio-explicacao">Total reembolsado pela cota no ano.</p>
           </div>
           <label class="search">
-            <span class="sr-only">Buscar senador</span>
-            <input id="busca" type="search" placeholder="Buscar senador, partido ou UF" />
+            <span class="sr-only">Buscar parlamentar</span>
+            <input id="busca" type="search" placeholder="Buscar nome, partido ou UF" />
           </label>
         </div>
 
@@ -63,7 +61,7 @@
 
         <div class="list-header" aria-hidden="true">
           <span>Posição</span>
-          <span>Senador</span>
+          <span id="coluna-nome">Parlamentar</span>
           <span>Atuando desde</span>
           <span>Descrição</span>
           <span>Valor</span>
@@ -74,9 +72,9 @@
     </main>
 
     <footer>
-      <span>Fonte oficial: Senado Federal</span>
+      <span>Fonte oficial: <span data-orgao></span></span>
       <span class="footer-links">
-        <a id="fonte" href="https://www12.senado.leg.br/dados-abertos/" target="_blank" rel="noreferrer">Conferir dados ↗</a>
+        <a id="fonte" target="_blank" rel="noreferrer">Conferir dados ↗</a>
         <a href="https://github.com/thiagorr162/saiu-do-seu-bolso" target="_blank" rel="noreferrer">Código no GitHub ↗</a>
       </span>
     </footer>

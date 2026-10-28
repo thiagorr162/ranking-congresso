@@ -24,10 +24,10 @@ const criteria = {
     compare: (a, b) => b.maior_despesa - a.maior_despesa,
   },
   faltas: {
-    description: "Sessões em que o Senado registrou “Não compareceu”.",
+    description: CASA.faltas,
     value: (senador) => `${senador.faltas} ${senador.faltas === 1 ? "falta" : "faltas"}`,
     detail: (senador) => `${senador.percentual_presenca}% de presença`,
-    category: (senador) => `${senador.faltas_justificadas} justificadas`,
+    category: (senador) => CASA.temJustificativas ? `${senador.faltas_justificadas} justificadas` : `${senador.total_sessoes} sessões no ano`,
     categoryDetail: (senador) => `${senador.presencas} sessões com presença`,
     page: "frequencia.html",
     compare: (a, b) => b.faltas - a.faltas,
@@ -55,7 +55,7 @@ function escapeHtml(value) {
 function render() {
   const criterion = criteria[state.sort];
   const query = state.query.trim().toLocaleLowerCase("pt-BR");
-  const senators = [...state.data.senadores]
+  const senators = [...state.data.parlamentares]
     .filter((item) => `${item.nome} ${item.partido} ${item.uf}`.toLocaleLowerCase("pt-BR").includes(query))
     .sort(criterion.compare);
 
@@ -68,7 +68,7 @@ function render() {
       <div class="person">
         <img src="${escapeHtml(senador.foto)}" alt="" loading="lazy" />
         <div>
-          <a href="senador.html?id=${encodeURIComponent(senador.id)}">${escapeHtml(senador.nome)}</a>
+          <a href="${pageUrl("perfil.html", { id: senador.id })}">${escapeHtml(senador.nome)}</a>
           <small>${escapeHtml(senador.partido)} · ${escapeHtml(senador.uf)}</small>
         </div>
       </div>
@@ -77,7 +77,7 @@ function render() {
         <small>${escapeHtml(senador.participacao || "")}</small>
       </div>
       <div class="category">
-        <a href="${criterion.page}?id=${encodeURIComponent(senador.id)}&${detailParameter}=${encodeURIComponent(detailTarget)}">${escapeHtml(criterion.category(senador))}</a>
+        <a href="${pageUrl(criterion.page, { id: senador.id, [detailParameter]: detailTarget })}">${escapeHtml(criterion.category(senador))}</a>
         <small>${escapeHtml(criterion.categoryDetail(senador))}</small>
       </div>
       <div class="value">
@@ -88,12 +88,17 @@ function render() {
   `).join("");
 }
 
+document.title = `Saiu do Seu Bolso — Ranking dos ${CASA.plural}`;
+document.querySelector("#titulo-ranking").textContent = `Ranking dos ${CASA.plural}`;
+document.querySelector("#coluna-nome").textContent = CASA.singular;
+document.querySelector("#fonte").href = CASA.dadosAbertos;
+
 async function load() {
   try {
-    const response = await fetch("data/senadores.json");
+    const response = await fetch(dataUrl());
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
-    const top = [...state.data.senadores].sort((a, b) => b.total_gasto - a.total_gasto)[0];
+    const top = [...state.data.parlamentares].sort((a, b) => b.total_gasto - a.total_gasto)[0];
     document.querySelector("#total-gasto").textContent = money.format(state.data.total_gasto);
     document.querySelector("#maior-nome").textContent = top?.nome || "—";
     document.querySelector("#maior-valor").textContent = top ? money.format(top.total_gasto) : "";

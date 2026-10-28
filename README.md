@@ -21,7 +21,12 @@ uv run deputados coletar --casa senado
 
 Os arquivos são gravados em `data/raw/<casa>/parlamentares.json`. Cada arquivo informa a fonte, o instante da coleta e os registros em um formato comum.
 
-Ao coletar o Senado, o projeto também baixa, para o ano atual, as despesas da CEAPS, o comparecimento nas votações nominais e as autorias de cada senador, além da data em que cada um começou a atuar no mandato. No site, "projetos" conta só projetos de lei, PECs, projetos de decreto legislativo e de resolução; requerimentos e indicações entram apenas no total de autorias. Para informar outro ano:
+Para cada casa, o projeto também baixa, para o ano atual, as despesas da cota parlamentar, o comparecimento em sessões e as autorias de cada parlamentar, além da data em que cada um começou a atuar no mandato.
+
+- **Câmara**: cota parlamentar (CEAP, com link da nota fiscal), presença nas sessões deliberativas do Plenário e proposições em que o deputado é proponente. A Câmara publica apenas as presenças, então uma falta é uma sessão deliberativa, ocorrida enquanto o deputado estava em exercício, sem presença registrada. Não há informação sobre justificativas.
+- **Senado**: despesas da CEAPS, comparecimento nas votações nominais (com o motivo oficial das ausências) e autorias.
+
+No site, "projetos" conta só projetos de lei, PECs, projetos de decreto legislativo e de resolução; requerimentos e indicações entram apenas no total de autorias. Para informar outro ano:
 
 ```bash
 uv run deputados coletar --casa senado --ano 2025
@@ -53,6 +58,8 @@ uv run pytest
 
 ## Próximas etapas
 
-1. Criar a página de deputados.
-2. Automatizar a atualização diária.
-3. Adicionar análises de anomalias, sempre exibindo evidências e fontes.
+1. Adicionar análises de anomalias, sempre exibindo evidências e fontes.
+
+## Publicação
+
+O workflow `.github/workflows/atualizar.yml` coleta as duas casas, gera o site e publica no GitHub Pages toda segunda-feira, além de poder ser disparado manualmente.

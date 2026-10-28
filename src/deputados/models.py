@@ -19,6 +19,7 @@ class Parlamentar:
     mandato_fim: str | None = None
     participacao: str | None = None
     exercicio_inicio: str | None = None
+    periodos_exercicio: tuple[tuple[str, str | None], ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -38,6 +39,9 @@ class Despesa:
     data: str | None
     detalhamento: str | None
     valor: float
+    url_documento: str | None = None
+    passageiro: str | None = None
+    trecho: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

@@ -6,15 +6,9 @@ from pathlib import Path
 
 from deputados.build import construir_site
 from deputados.collector import salvar, salvar_autorias, salvar_comparecimentos, salvar_despesas
-from deputados.sources.camara import SOURCE_URL as CAMARA_URL
+from deputados.sources import camara, senado
 from deputados.sources.camara import CamaraSource
-from deputados.sources.senado import (
-    AUTHORSHIP_SOURCE_URL,
-    EXPENSES_SOURCE_URL,
-    VOTES_SOURCE_URL,
-    SenadoSource,
-)
-from deputados.sources.senado import SOURCE_URL as SENADO_URL
+from deputados.sources.senado import SenadoSource
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -37,42 +31,62 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def coletar(casa: str, saida: Path, ano: int) -> int:
-    fontes = []
     if casa in {"camara", "todas"}:
-        fontes.append(("camara", CAMARA_URL, CamaraSource()))
+        _coletar_casa(
+            "camara",
+            CamaraSource(),
+            saida,
+            ano,
+            parlamentares_url=camara.SOURCE_URL,
+            despesas_url=f"{camara.EXPENSES_SOURCE_URL}/Ano-{ano}.csv.zip",
+            comparecimentos_url=camara.VOTES_SOURCE_URL,
+            autorias_url=camara.AUTHORSHIP_SOURCE_URL,
+        )
     if casa in {"senado", "todas"}:
-        fontes.append(("senado", SENADO_URL, SenadoSource()))
-
-    for nome, url, fonte in fontes:
-        parlamentares = fonte.parlamentares()
-        destino = salvar(parlamentares, fonte=nome, source_url=url, output_dir=saida)
-        print(f"{nome}: {len(parlamentares)} parlamentares -> {destino}")
-        if nome == "senado":
-            despesas = fonte.despesas(ano)
-            destino = salvar_despesas(
-                despesas,
-                ano=ano,
-                source_url=EXPENSES_SOURCE_URL,
-                output_dir=saida,
-            )
-            print(f"senado: {len(despesas)} despesas -> {destino}")
-            comparecimentos = fonte.comparecimentos(ano)
-            destino = salvar_comparecimentos(
-                comparecimentos,
-                ano=ano,
-                source_url=VOTES_SOURCE_URL,
-                output_dir=saida,
-            )
-            print(f"senado: {len(comparecimentos)} registros de comparecimento -> {destino}")
-            autorias = fonte.autorias((parlamentar.id_fonte for parlamentar in parlamentares), ano)
-            destino = salvar_autorias(
-                autorias,
-                ano=ano,
-                source_url=AUTHORSHIP_SOURCE_URL,
-                output_dir=saida,
-            )
-            print(f"senado: {len(autorias)} autorias -> {destino}")
+        _coletar_casa(
+            "senado",
+            SenadoSource(),
+            saida,
+            ano,
+            parlamentares_url=senado.SOURCE_URL,
+            despesas_url=f"{senado.EXPENSES_SOURCE_URL}/{ano}",
+            comparecimentos_url=senado.VOTES_SOURCE_URL,
+            autorias_url=senado.AUTHORSHIP_SOURCE_URL,
+        )
     return 0
+
+
+def _coletar_casa(
+    nome: str,
+    fonte: CamaraSource | SenadoSource,
+    saida: Path,
+    ano: int,
+    *,
+    parlamentares_url: str,
+    despesas_url: str,
+    comparecimentos_url: str,
+    autorias_url: str,
+) -> None:
+    parlamentares = fonte.parlamentares()
+    destino = salvar(parlamentares, fonte=nome, source_url=parlamentares_url, output_dir=saida)
+    print(f"{nome}: {len(parlamentares)} parlamentares -> {destino}")
+
+    despesas = fonte.despesas(ano)
+    destino = salvar_despesas(despesas, fonte=nome, ano=ano, source_url=despesas_url, output_dir=saida)
+    print(f"{nome}: {len(despesas)} despesas -> {destino}")
+
+    if isinstance(fonte, CamaraSource):
+        comparecimentos = fonte.comparecimentos(ano, parlamentares)
+    else:
+        comparecimentos = fonte.comparecimentos(ano)
+    destino = salvar_comparecimentos(
+        comparecimentos, fonte=nome, ano=ano, source_url=comparecimentos_url, output_dir=saida
+    )
+    print(f"{nome}: {len(comparecimentos)} registros de comparecimento -> {destino}")
+
+    autorias = fonte.autorias((parlamentar.id_fonte for parlamentar in parlamentares), ano)
+    destino = salvar_autorias(autorias, fonte=nome, ano=ano, source_url=autorias_url, output_dir=saida)
+    print(f"{nome}: {len(autorias)} autorias -> {destino}")
 
 
 def servir_site(pasta: Path, porta: int) -> int:

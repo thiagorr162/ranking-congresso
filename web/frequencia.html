@@ -3,15 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Presenças e ausências oficiais de um senador." />
+    <meta name="description" content="Presenças e ausências oficiais de um parlamentar." />
     <title>Frequência — Saiu do Seu Bolso</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="casa.js" defer></script>
     <script src="frequencia.js" defer></script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brand-mark">SB</span><span>Saiu do Seu Bolso</span></a>
-      <nav aria-label="Navegação principal"><a class="active" href="./">Senadores</a></nav>
+      <nav id="nav-casas" aria-label="Navegação principal"></nav>
     </header>
     <main>
       <a id="voltar" class="back-link" href="./">← Voltar</a>
@@ -19,24 +20,24 @@
         <div class="page-heading">
           <p class="eyebrow">FREQUÊNCIA</p>
           <h1 id="nome"></h1>
-          <p>Sessões deliberativas com votação nominal.</p>
+          <p id="sessoes-descricao"></p>
         </div>
         <div class="detail-grid frequency-summary">
           <article class="metric-card"><span>Presenças</span><strong id="presencas"></strong></article>
-          <article class="metric-card"><span>Não compareceu</span><strong id="faltas"></strong></article>
-          <article class="metric-card"><span>Justificadas</span><strong id="justificadas"></strong></article>
+          <article class="metric-card"><span data-rotulo-falta>Não compareceu</span><strong id="faltas"></strong></article>
+          <article class="metric-card" data-so-senado><span>Justificadas</span><strong id="justificadas"></strong></article>
           <article class="metric-card"><span>Presença</span><strong id="percentual"></strong></article>
         </div>
         <section class="detail-section">
           <div class="filters" role="group" aria-label="Filtrar sessões">
-            <button class="selected" data-filter="falta">Não compareceu</button>
-            <button data-filter="justificada">Justificadas</button>
+            <button class="selected" data-filter="falta" data-rotulo-falta>Não compareceu</button>
+            <button data-filter="justificada" data-so-senado>Justificadas</button>
             <button data-filter="todas">Todas</button>
           </div>
           <p id="contagem" class="result-count"></p>
           <div class="table-wrap">
             <table class="expenses-table">
-              <thead><tr><th>Data</th><th>Situação</th><th>Motivo oficial</th><th>Votações</th></tr></thead>
+              <thead id="cabecalho"></thead>
               <tbody id="sessoes"></tbody>
             </table>
           </div>
